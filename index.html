@@ -548,7 +548,7 @@
 </div>
 
 <div id="sideToolsRight">
-  <button id="btnHintOne" class="roundTool" aria-label="Révéler une lettre au hasard (40 pièces)">
+  <button id="btnHintOne" class="roundTool" aria-label="Révéler la lettre suivante d'un mot (40 pièces)">
     <span class="ico">💡</span>
     <span class="toolTag">40 🪙</span>
   </button>
@@ -653,7 +653,7 @@
         <details open>
           <summary>🌻 Comment jouer à Mot à Mot ?</summary>
           <p>Glisse ton doigt (ou la souris) sur les lettres du pot de fleurs pour former des mots et remplir la grille de mots croisés posée sur la pelouse.</p>
-          <p>Chaque mot valide qui ne figure pas dans la grille compte comme <b>⭐ Mot Bonus</b> : tous les 5 mots bonus, tu gagnes une pluie de pièces d'or !</p>
+          <p>Chaque mot valide qui ne figure pas dans la grille compte comme <b>⭐ Mot Bonus</b> : il te rapporte <b>+5 🪙</b> tout de suite, et tous les 5 mots bonus tu gagnes une pluie de pièces d'or ! Dépense tes pièces avec <b>💡</b> (lettre suivante d'un mot) ou <b>👆</b> (case de ton choix).</p>
         </details>
         <details>
           <summary>🎓 Les 6 Thèmes de révision</summary>
@@ -700,7 +700,7 @@
   /* =====================================================================
    * Constantes & Configuration
    * ===================================================================== */
-  const GAME_VERSION = '1.2';
+  const GAME_VERSION = '1.3';
   const NET_URL = 'https://enqgjsvqygqxeikfxwxe.supabase.co';
   const NET_ANON_KEY = 'sb_publishable_0EJZem-TiB4ltXxpQbeZRQ_JAaOjGb9';
 
@@ -1478,6 +1478,7 @@
   };
 
   const curTheme = () => THEMES[state.theme] || THEMES.general;
+  const BONUS_WORD_COINS = 5;
   const prog = () => save.progress[state.theme];
 
   /* =====================================================================
@@ -1845,6 +1846,19 @@
       state.lastSubmittedStatus = 'bonus';
       Sfx.bonusWord();
 
+      // Chaque mot bonus rapporte tout de suite des pièces, à dépenser en indices (💡 👆 🚀)
+      const coinRect = $('coinPill').getBoundingClientRect();
+      flyOrb(L.potCX, L.pillY, coinRect.left + 20, coinRect.top + 18, '🪙', () => {
+        save.coins += BONUS_WORD_COINS;
+        Sfx.coin();
+        persist();
+        updateHudTop();
+      });
+      if (!save.bonusExplained) {
+        save.bonusExplained = true;
+        addPraiseBanner('MOT BONUS !', `+${BONUS_WORD_COINS} 🪙 à dépenser en indices 💡`);
+      }
+
       const btnRect = $('btnBonusWords').getBoundingClientRect();
       flyOrb(L.potCX, L.pillY, btnRect.left + 28, btnRect.top + 28, '⭐', () => {
         spawnParticles(btnRect.left + 28, btnRect.top + 28, '#ffd84d', 12, 95);
@@ -1856,7 +1870,7 @@
         persist();
         updateHudTop();
       });
-      addFloat(L.potCX, L.pillY - 18, `⭐ Mot bonus (+${word.length * 15})`, '#7bed9f', 18);
+      addFloat(L.potCX, L.pillY - 18, `⭐ Mot bonus · +${BONUS_WORD_COINS} 🪙`, '#7bed9f', 18);
       checkBadges();
       persist();
       updateHudTop();
@@ -2095,7 +2109,7 @@
     showModal({
       icon: '🪙',
       title: 'Pièces insuffisantes',
-      text: 'Trouve des <b>⭐ Mots Bonus</b> (5 mots bonus = +25 🪙), termine des niveaux ou ouvre ton <b>🎁 Bonus du Jour</b> pour gagner des pièces !',
+      text: 'Trouve des <b>⭐ Mots Bonus</b> (+' + BONUS_WORD_COINS + ' 🪙 chacun, et +25 🪙 tous les 5), termine des niveaux ou ouvre ton <b>🎁 Bonus du Jour</b> pour gagner des pièces !',
       buttons: [
         { label: '🎁 Voir le Bonus du Jour', primary: true, onClick: () => { hideModal(); openDailyGiftModal(); } },
         { label: 'Compris', onClick: () => hideModal() }
@@ -2103,15 +2117,24 @@
     });
   }
 
+  /** Prochaine lettre cachée du mot le plus court pas encore trouvé, dans l'ordre de lecture */
+  function nextHintCell() {
+    const words = state.puzzle.words.filter(w => !w.found).sort((a, b) => a.word.length - b.word.length);
+    for (const w of words) {
+      const cell = w.cells.find(c => !c.revealed);
+      if (cell) return cell;
+    }
+    return null;
+  }
+
   function useHintOne() {
     if (!state.puzzle || state.over || state.blooming) return;
     Sfx.init();
-    const hidden = state.puzzle.cells.filter(c => !c.revealed);
-    if (!hidden.length) return;
+    const target = nextHintCell();
+    if (!target) return;
     if (save.coins < 40) { notEnoughCoins(); return; }
     save.coins -= 40;
     state.toolsUsed = true;
-    const target = hidden[Math.floor(Math.random() * hidden.length)];
     Sfx.coin();
     const btnRect = $('btnHintOne').getBoundingClientRect();
     flyOrb(btnRect.left + 25, btnRect.top + 25, target.cx, target.cy, '💡', () => revealCellWithFx(target));
@@ -2182,7 +2205,7 @@
     showModal({
       icon: '⭐',
       title: `Mots Bonus (${list.length})`,
-      text: `Encore <b>${rem} mot${rem > 1 ? 's' : ''} bonus</b> pour gagner <b>+25 🪙</b> !<br>` +
+      text: `Chaque mot bonus = <b>+${BONUS_WORD_COINS} 🪙</b>. Encore <b>${rem} mot${rem > 1 ? 's' : ''} bonus</b> pour <b>+25 🪙</b> en plus !<br>` +
         (list.length
           ? `<div class="bonusWordsPill">${list.map(w => `<span class="bwTag">${esc(w)}</span>`).join('')}</div>`
           : '<small>Forme des mots français valides qui ne sont pas dans la grille pour remplir l’étoile bonus.</small>'),
