@@ -1,0 +1,18 @@
+{
+  "id": "/mot-a-mot/",
+  "name": "Mot à Mot — Jardin des Mots & Révision",
+  "short_name": "Mot à Mot",
+  "description": "Jeu de mots croisés et roue de lettres par thèmes de révision (IT, SysAdmin, Médical, Cyber, Sciences, Tous sujets) avec classements en ligne.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#162e14",
+  "theme_color": "#162e14",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

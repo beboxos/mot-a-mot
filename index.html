@@ -1,0 +1,4107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#162e14">
+<title>Mot à Mot — Jardin des Mots & Révision</title>
+<style>
+  :root {
+    --wood-light: #c87d3b;
+    --wood-mid: #96521b;
+    --wood-dark: #5c2e09;
+    --wood-border: #eab06d;
+    --gold: #ffd84d;
+    --gold-dark: #c98a09;
+    --cream: #fff8e7;
+    --cream-border: #e5d2ab;
+    --green-top: #5ec926;
+    --green-bot: #328f0c;
+    --green-edge: #1f6104;
+    --tile-blue-top: #37a5ff;
+    --tile-blue-bot: #156ad4;
+    --accent: #ffd84d;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; height: 100%; overflow: hidden;
+    background: #162e14; color: #fff;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-user-select: none; user-select: none; touch-action: none;
+  }
+  button { font: inherit; color: inherit; border: none; background: none; margin: 0; padding: 0; cursor: pointer; }
+  #game { position: fixed; inset: 0; display: block; touch-action: none; z-index: 1; }
+  #fx { position: fixed; inset: 0; display: block; pointer-events: none; z-index: 8; }
+
+  /* ---------- HUD Supérieur Style Studio Moli / Jardin des Mots ---------- */
+  #hud {
+    position: fixed; z-index: 5;
+    top: calc(env(safe-area-inset-top, 0px) + 8px); left: 10px; right: 10px;
+    max-width: 560px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between; gap: 6px;
+    pointer-events: none;
+  }
+  #hud > * { pointer-events: auto; }
+  .woodBtn {
+    width: 44px; height: 44px; border-radius: 50%; flex: none;
+    display: grid; place-items: center;
+    background: radial-gradient(circle at 35% 28%, #d98c46, #8f4b14 70%, #5e2f07 100%);
+    border: 2.5px solid #f0b978;
+    box-shadow: 0 4px 0 #421f03, 0 6px 14px rgba(0,0,0,0.45), inset 0 2px 3px rgba(255,255,255,0.45);
+    transition: transform .1s;
+  }
+  .woodBtn:active { transform: translateY(2px) scale(0.95); }
+  .woodBtn svg { width: 22px; height: 22px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.45)); }
+
+  .resPill {
+    display: flex; align-items: center; gap: 6px;
+    height: 38px; padding: 0 10px 0 6px; border-radius: 999px;
+    background: linear-gradient(180deg, #5c3110, #381c06);
+    border: 2px solid #d79550;
+    box-shadow: 0 3px 0 #261102, 0 5px 12px rgba(0,0,0,0.4), inset 0 2px 4px rgba(0,0,0,0.6);
+    font-weight: 900; font-size: 14px; letter-spacing: .02em;
+    text-shadow: 0 2px 2px rgba(0,0,0,0.7);
+  }
+  .resPill .ico {
+    width: 26px; height: 26px; display: grid; place-items: center; font-size: 17px;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+  }
+  .resPill .plus {
+    width: 22px; height: 22px; border-radius: 50%; margin-left: 2px;
+    background: linear-gradient(180deg, #67db2b, #2e9108);
+    border: 1.5px solid #b8ff8a;
+    box-shadow: 0 2px 0 #1b5903;
+    display: grid; place-items: center; font-size: 15px; font-weight: 900; line-height: 1;
+  }
+
+  #lvlPill {
+    flex: 1; min-width: 0; max-width: 195px;
+    padding: 4px 12px; border-radius: 16px; text-align: center;
+    background: linear-gradient(180deg, rgba(118, 66, 24, 0.94), rgba(69, 36, 10, 0.94));
+    border: 2px solid #df9f5b;
+    box-shadow: 0 3px 0 #331904, 0 5px 12px rgba(0,0,0,0.4);
+  }
+  #lvlPill small {
+    display: block; font-size: 10px; font-weight: 800; color: #ffe299;
+    text-transform: uppercase; letter-spacing: .08em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #lvlPill b {
+    display: block; font-size: 14px; font-weight: 900; color: #fff;
+    text-shadow: 0 2px 2px rgba(0,0,0,0.6);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* ---------- Outils autour du pot de fleurs ---------- */
+  #sideToolsLeft, #sideToolsRight {
+    position: fixed; z-index: 5;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+    display: flex; flex-direction: column; gap: 14px;
+    pointer-events: none;
+  }
+  #sideToolsLeft { left: max(12px, calc(50% - 245px)); }
+  #sideToolsRight { right: max(12px, calc(50% - 245px)); }
+  .roundTool {
+    pointer-events: auto; position: relative;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 28%, #d98c46, #874410 72%, #522705 100%);
+    border: 2.5px solid #f0b978;
+    box-shadow: 0 5px 0 #3d1c03, 0 8px 16px rgba(0,0,0,0.48), inset 0 2px 4px rgba(255,255,255,0.42);
+    display: grid; place-items: center;
+    transition: transform .12s, filter .15s;
+  }
+  .roundTool:active { transform: translateY(3px) scale(0.95); }
+  .roundTool.active {
+    background: radial-gradient(circle at 35% 28%, #ffe875, #e69209 75%, #8c5200 100%);
+    border-color: #fff8c4;
+    box-shadow: 0 0 0 4px rgba(255, 224, 102, 0.55), 0 5px 0 #663800;
+  }
+  .roundTool svg { width: 28px; height: 28px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
+  .roundTool .ico { font-size: 26px; line-height: 1; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
+  .toolTag {
+    position: absolute; bottom: -9px; left: 50%; transform: translateX(-50%);
+    padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+    background: linear-gradient(180deg, #fff5d6, #e2c792);
+    color: #522705; border: 1.5px solid #8a4b14;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    font-size: 11px; font-weight: 900; letter-spacing: .01em;
+    display: flex; align-items: center; gap: 3px;
+  }
+  .toolTag.ribbon {
+    background: linear-gradient(180deg, #e0243c, #990b1e);
+    color: #fff; border-color: #ff94a2;
+  }
+  .toolBadge {
+    position: absolute; top: -5px; right: -5px; min-width: 22px; height: 22px; padding: 0 5px;
+    border-radius: 999px; background: #26b81e; border: 2px solid #fff;
+    font-size: 11px; font-weight: 900; color: #fff; display: grid; place-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+  }
+  body.noTools #sideToolsRight { display: none; }
+
+  #hintBanner {
+    position: fixed; z-index: 6; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 64px);
+    transform: translateX(-50%) translateY(-8px); opacity: 0; pointer-events: none;
+    padding: 8px 18px; border-radius: 999px; font-size: 13px; font-weight: 800;
+    background: linear-gradient(180deg, #ffe066, #f59e0b); color: #3b2000;
+    border: 2px solid #fff5c0; box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+    transition: opacity .2s, transform .2s; white-space: nowrap;
+  }
+  #hintBanner.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ---------- Écran d'Accueil Studio Moli / Jardin des Mots ---------- */
+  #home {
+    position: fixed; inset: 0; z-index: 9; display: flex; align-items: center; justify-content: center;
+    padding: calc(env(safe-area-inset-top, 0px) + 12px) 12px calc(env(safe-area-inset-bottom, 0px) + 12px);
+    background:
+      radial-gradient(circle at 82% 22%, rgba(210, 230, 255, 0.28) 0%, rgba(120, 160, 230, 0.08) 22%, transparent 45%),
+      radial-gradient(circle at 50% 25%, rgba(36, 68, 42, 0.90), rgba(9, 18, 28, 0.97));
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    opacity: 0; pointer-events: none; transition: opacity .28s;
+  }
+  #home.show { opacity: 1; pointer-events: auto; }
+  .homeCard {
+    position: relative; display: flex; flex-direction: column;
+    width: min(440px, 100%); max-height: 100%; overflow: hidden; text-align: center;
+    padding: 16px 16px 14px; border-radius: 28px;
+    background: linear-gradient(180deg, rgba(32, 56, 38, 0.95), rgba(16, 29, 22, 0.97));
+    border: 2px solid rgba(234, 176, 109, 0.45);
+    box-shadow: 0 22px 60px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.22);
+    transform: translateY(14px) scale(.97); transition: transform .32s cubic-bezier(.2, 1.4, .4, 1);
+  }
+  #home.show .homeCard { transform: none; }
+  .homeCard > * { flex: none; }
+
+  /* Pancarte en bois avec tuiles bleues M-O-T-S et fleurs */
+  .woodSign {
+    position: relative; margin: 2px auto 6px; padding: 10px 18px 12px;
+    width: min(320px, 92%); border-radius: 18px;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0 14px, rgba(0,0,0,0.04) 14px 28px),
+      linear-gradient(180deg, #d89048 0%, #b46922 52%, #8c4b10 100%);
+    border: 3px solid #f2bc7d;
+    box-shadow: 0 6px 0 #4f2604, 0 10px 24px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.35);
+  }
+  .woodSign .vines {
+    position: absolute; top: -11px; left: 14px; right: 14px;
+    display: flex; justify-content: space-between; align-items: center; pointer-events: none;
+    font-size: 22px; filter: drop-shadow(0 3px 3px rgba(0,0,0,0.45));
+  }
+  .woodSign .subTitle {
+    font-size: 13px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase;
+    color: #fff6d9; text-shadow: 0 2px 0 #5c2e09, 0 3px 6px rgba(0,0,0,0.5);
+    margin-bottom: 5px;
+  }
+  .signTiles {
+    display: flex; justify-content: center; gap: 5px; align-items: center;
+  }
+  .signTile {
+    width: 40px; height: 42px; border-radius: 10px;
+    background: linear-gradient(180deg, #42b2ff, #1670dc);
+    border: 2.5px solid #dcf2ff;
+    box-shadow: 0 4px 0 #0b3f8a, 0 6px 10px rgba(0,0,0,0.35), inset 0 2px 2px rgba(255,255,255,0.55);
+    display: grid; place-items: center;
+    font-size: 24px; font-weight: 900; color: #fff;
+    text-shadow: 0 2px 0 #0c4491;
+  }
+  .signTile:nth-child(1) { transform: rotate(-6deg) translateY(2px); }
+  .signTile:nth-child(2) { transform: rotate(-2deg); }
+  .signTile:nth-child(3) { transform: rotate(2deg); width: auto; padding: 0 7px; font-size: 18px; background: linear-gradient(180deg, #ffd84d, #e08b00); border-color: #fff5c0; box-shadow: 0 4px 0 #8a4e00; text-shadow: 0 2px 0 #7a4300; }
+  .signTile:nth-child(4) { transform: rotate(-3deg); }
+  .signTile:nth-child(5) { transform: rotate(4deg) translateY(1px); }
+  .signTile:nth-child(6) { transform: rotate(7deg) translateY(3px); }
+
+  .verBadge {
+    display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 8px;
+    font-size: 11px; font-weight: 800; background: rgba(0,0,0,0.35); color: #ffe299;
+    border: 1px solid rgba(255,255,255,0.2); vertical-align: middle;
+  }
+  .cornerBtn {
+    position: absolute; top: 12px; width: 38px; height: 38px; border-radius: 12px;
+    display: grid; place-items: center; font-size: 18px; font-weight: 900;
+    background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25);
+    z-index: 3;
+  }
+  .cornerBtn.left { left: 12px; }
+  .cornerBtn.right { right: 12px; }
+  .tag { margin: 2px 0 8px; font-size: 12.5px; color: #d8ebd4; opacity: .9; }
+  .seasonGreet { margin: -4px 0 8px; font-size: 13.5px; font-weight: 900; color: #ffb35c; }
+
+  /* Onglets principaux */
+  #homeTabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 0 0 10px; }
+  .homeTab {
+    padding: 8px 4px; border-radius: 13px; font-weight: 900; font-size: 12px;
+    background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.16);
+    white-space: nowrap; transition: background .15s, border-color .15s;
+  }
+  .homeTab.active {
+    background: linear-gradient(180deg, rgba(255, 216, 77, 0.26), rgba(245, 158, 11, 0.18));
+    border-color: var(--gold); color: var(--gold);
+  }
+
+  .panel { display: none; flex: 1 1 auto; min-height: 0; flex-direction: column; }
+  .panel.show { display: flex; }
+  .panel > * { flex: none; }
+  .panel > .gridWrap {
+    flex: 1 1 auto; min-height: 110px; overflow-y: auto; position: relative;
+    margin: 0 -6px; padding: 2px 6px 4px;
+  }
+
+  /* Sélecteur des 6 Thèmes de révision */
+  #themeBar {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 0 0 7px;
+    padding: 5px; border-radius: 16px; background: rgba(0, 0, 0, 0.32);
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+  .themeBtn {
+    padding: 6px 4px; border-radius: 11px; font-size: 11.5px; font-weight: 800;
+    line-height: 1.15; color: rgba(255,255,255,0.82);
+    background: rgba(255,255,255,0.05); border: 1px solid transparent;
+    transition: transform .1s, background .15s;
+  }
+  .themeBtn .lv { display: block; font-size: 9.5px; font-weight: 700; opacity: .78; margin-top: 1px; }
+  .themeBtn.active {
+    color: #361c00;
+    background: linear-gradient(180deg, #ffe47a, #f59e0b);
+    border-color: #fff6c2;
+    box-shadow: 0 3px 0 #9e5800;
+  }
+  .themeDesc { margin: 0 0 8px; font-size: 11.5px; color: #cfe6cb; min-height: 1.4em; }
+
+  /* Gros boutons estilo Jardin des Mots (Vert NIVEAU X + Blanc PUZZLE DU JOUR) */
+  .playRow { display: grid; grid-template-columns: 1.25fr 1fr; gap: 8px; margin-bottom: 6px; }
+  .btnGreen3D {
+    padding: 12px 14px; border-radius: 18px; font-size: 16px; font-weight: 900; letter-spacing: .03em;
+    color: #fff; text-shadow: 0 2px 0 #1d5c04;
+    background: linear-gradient(180deg, #6be02b 0%, #3ca610 55%, #2c8507 100%);
+    border: 2.5px solid #b6ff7d;
+    box-shadow: 0 5px 0 #1b5403, 0 8px 18px rgba(0,0,0,0.4);
+  }
+  .btnGreen3D:active { transform: translateY(2px); }
+  .btnCream3D {
+    position: relative;
+    padding: 12px 10px; border-radius: 18px; font-size: 13px; font-weight: 900; letter-spacing: .02em;
+    color: #7d3c08;
+    background: linear-gradient(180deg, #fffdf7 0%, #f5e6c8 100%);
+    border: 2.5px solid #d4b483;
+    box-shadow: 0 5px 0 #9c7a4c, 0 8px 18px rgba(0,0,0,0.35);
+  }
+  .btnCream3D:active { transform: translateY(2px); }
+  .notifDot {
+    position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%;
+    background: linear-gradient(180deg, #ff4757, #c01528); border: 2px solid #fff;
+    color: #fff; font-size: 12px; font-weight: 900; display: grid; place-items: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.45);
+  }
+
+  .homeInfo { margin: 4px 0 8px; font-size: 11.5px; opacity: .78; }
+  .secTitle { margin: 2px 0 8px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; opacity: .75; font-weight: 800; color: #ffe299; }
+
+  #levelGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 8px; }
+  .lvlTile {
+    aspect-ratio: 1; border-radius: 16px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2px;
+    background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.05));
+    border: 1.5px solid rgba(255,255,255,.22); box-shadow: 0 4px 0 rgba(0,0,0,.32);
+  }
+  .lvlTile b { font-size: 19px; font-weight: 900; line-height: 1; }
+  .lvlTile .stars { font-size: 10px; letter-spacing: 1px; color: #ffd84d; }
+  .lvlTile.current {
+    border: 2px solid #72eb31;
+    background: linear-gradient(180deg, rgba(114, 235, 49, 0.28), rgba(44, 133, 7, 0.22));
+    box-shadow: 0 0 0 3px rgba(114, 235, 49, .28), 0 4px 0 rgba(0,0,0,.35);
+  }
+  .lvlTile.locked { opacity: .38; cursor: default; box-shadow: none; }
+  .lvlTile.locked .stars { color: #fff; opacity: .75; }
+  .lvlTile:not(.locked):active { transform: translateY(2px); }
+  .worldTitle {
+    grid-column: 1 / -1; margin: 6px 0 0; padding: 4px 0 2px; text-align: left;
+    font-size: 11.5px; font-weight: 800; letter-spacing: .05em; color: #ffe066;
+    border-bottom: 1px solid rgba(255, 224, 102, 0.25);
+  }
+  .worldTitle:first-child { margin-top: 0; }
+
+  /* ---------- Calendrier Puzzle du Jour (style OCT 2026) ---------- */
+  .calCard {
+    background: linear-gradient(180deg, #f3c26f, #df9e42);
+    border: 3px solid #fff0cc; border-radius: 22px; padding: 12px; color: #592b04;
+    box-shadow: 0 6px 0 #8a4e0e, inset 0 2px 4px rgba(255,255,255,0.5);
+    margin-bottom: 10px;
+  }
+  .calHeader {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 17px; font-weight: 900; color: #fff;
+    text-shadow: 0 2px 2px rgba(90, 40, 0, 0.65); margin-bottom: 8px;
+  }
+  .chestBar {
+    display: flex; align-items: center; justify-content: space-between; gap: 6px;
+    background: rgba(255, 245, 220, 0.65); border-radius: 14px; padding: 8px 10px;
+  }
+  .keyCount {
+    display: flex; align-items: center; gap: 4px; font-weight: 900; font-size: 14px;
+    background: #2264b8; color: #fff; padding: 4px 9px; border-radius: 10px;
+    box-shadow: 0 2px 0 #0f3669;
+  }
+  .chestStep {
+    display: flex; flex-direction: column; align-items: center; font-size: 11px; font-weight: 900;
+  }
+  .chestStep .cIco { font-size: 22px; line-height: 1.1; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3)); }
+  .chestStep.done .cIco { filter: drop-shadow(0 0 6px #4cd137); }
+  .calGrid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;
+    background: rgba(214, 146, 54, 0.55); border-radius: 16px; padding: 8px;
+    margin-top: 8px;
+  }
+  .calDay {
+    aspect-ratio: 1; border-radius: 10px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; font-weight: 900; font-size: 12px;
+    background: rgba(255, 250, 238, 0.92); color: #6e3908;
+    box-shadow: 0 2px 0 rgba(120, 65, 10, 0.45);
+  }
+  .calDay .k { font-size: 9px; line-height: 1; margin-bottom: 1px; }
+  .calDay.future { background: rgba(140, 82, 20, 0.28); color: rgba(255,255,255,0.55); box-shadow: none; }
+  .calDay.today {
+    background: #fff; color: #2b7a06; border: 2.5px solid #6be02b;
+    box-shadow: 0 0 0 2px rgba(107, 224, 43, 0.45), 0 3px 0 #2b7a06;
+  }
+  .calDay.won { background: linear-gradient(180deg, #fff6c4, #ffd84d); color: #5c3100; }
+
+  /* ---------- Cartes de Modes & Badges ---------- */
+  #panelModes { overflow-y: auto; margin: 0 -6px; padding: 2px 6px 4px; }
+  .modeCard {
+    display: grid; grid-template-columns: 46px 1fr; gap: 3px 12px; align-items: center;
+    width: 100%; margin-bottom: 8px; padding: 11px 12px; border-radius: 18px; text-align: left;
+    background: linear-gradient(180deg, rgba(255,255,255,.15), rgba(255,255,255,.05));
+    border: 1px solid rgba(255,255,255,.22); box-shadow: 0 4px 0 rgba(0,0,0,.3);
+  }
+  .modeCard:active { transform: translateY(2px); }
+  .modeCard .mi { grid-row: span 2; font-size: 30px; text-align: center; }
+  .modeCard .mn { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-weight: 900; font-size: 15px; }
+  .modeCard .mr { font-size: 11.5px; font-weight: 800; color: var(--gold); white-space: nowrap; }
+  .modeCard .md { font-size: 11.5px; opacity: .82; line-height: 1.32; }
+  .badgeGrid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; margin-top: 4px;
+  }
+  .badgeItem {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 14px;
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
+    text-align: left; font-size: 11.5px;
+  }
+  .badgeItem.unlocked {
+    background: linear-gradient(180deg, rgba(255, 216, 77, 0.2), rgba(245, 158, 11, 0.08));
+    border-color: rgba(255, 216, 77, 0.55);
+  }
+  .badgeItem .bi { font-size: 24px; filter: grayscale(1); opacity: 0.45; }
+  .badgeItem.unlocked .bi { filter: none; opacity: 1; }
+  .badgeItem b { display: block; font-size: 12px; color: #fff; }
+  .badgeItem span { opacity: 0.78; font-size: 10.5px; }
+
+  /* ---------- Classements & Préférences ---------- */
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin: 0 0 8px; }
+  .chip {
+    padding: 6px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 800;
+    background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.16);
+  }
+  .chip.small { padding: 4px 8px; font-size: 10.5px; }
+  .chip.active { background: rgba(255, 216, 77, 0.22); border-color: var(--gold); color: var(--gold); }
+  .rankHead { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 0 0 7px; font-size: 13px; font-weight: 800; }
+  .rankHead button { width: 32px; height: 28px; border-radius: 9px; background: rgba(255,255,255,.12); font-weight: 900; }
+  .rankHead button:disabled { opacity: .3; cursor: default; }
+  #panelRanks { overflow: hidden; }
+  .rankList { flex: 1 1 auto; min-height: 110px; overflow-y: auto; margin: 0 -6px; padding: 0 6px; }
+  .rankRow {
+    display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 8px; text-align: left;
+    padding: 7px 10px; margin-bottom: 5px; border-radius: 12px; background: rgba(255, 255, 255, 0.08); font-size: 13.5px;
+  }
+  .rankRow .pos { font-weight: 900; text-align: center; }
+  .rankRow .who { font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rankRow .who small { display: block; font-weight: 600; opacity: .72; font-size: 10.5px; }
+  .rankRow .pts { font-weight: 900; color: var(--gold); text-align: right; }
+  .rankRow.me { background: rgba(255, 216, 77, 0.18); border: 1px solid rgba(255, 216, 77, 0.55); }
+  .rankRow.tap { cursor: pointer; grid-template-columns: 62px 1fr auto; }
+  .rankRow.tap::after { content: '›'; font-size: 19px; font-weight: 900; opacity: .55; }
+  .rankEmpty { padding: 16px 8px; opacity: .78; font-size: 12.5px; }
+
+  .prefList { display: flex; flex-direction: column; gap: 7px; flex: 1 1 auto; overflow-y: auto; }
+  .prefList .mBtn { font-size: 13.5px; padding: 11px; }
+  .faq { flex: 1 1 auto; overflow-y: auto; text-align: left; font-size: 13px; line-height: 1.45; margin: 0 -4px; padding: 0 4px; }
+  .faq details { margin-bottom: 7px; padding: 8px 11px; border-radius: 13px; background: rgba(255, 255, 255, 0.08); }
+  .faq summary { cursor: pointer; font-weight: 800; color: #ffe299; }
+  .faq p { margin: 6px 0 0; opacity: .92; }
+  .dangerZone { margin-top: 14px; padding: 8px 10px; border-radius: 14px; border: 1px dashed rgba(255, 120, 140, 0.45); text-align: left; }
+  .dangerZone summary { cursor: pointer; font-size: 12.5px; font-weight: 800; color: #ffb0bb; }
+  .dangerZone .dangerBtn { width: 100%; margin-top: 7px; font-size: 12.5px; background: rgba(255, 77, 109, 0.18); border-color: rgba(255, 77, 109, 0.5); }
+
+  /* ---------- Modales Studio Moli (ruban bleu / parchemin crème) ---------- */
+  #modal {
+    position: fixed; inset: 0; z-index: 12; display: flex; align-items: center; justify-content: center;
+    padding: 18px; background: rgba(8, 16, 12, 0.68);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    opacity: 0; pointer-events: none; transition: opacity .24s;
+  }
+  #modal.show { opacity: 1; pointer-events: auto; }
+  .card {
+    position: relative;
+    width: min(355px, 100%); text-align: center; padding: 24px 20px 20px; border-radius: 26px;
+    background: linear-gradient(180deg, #284b30, #162e1c);
+    border: 2.5px solid #e5a965;
+    box-shadow: 0 22px 60px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.25);
+    transform: scale(.86) translateY(18px); transition: transform .32s cubic-bezier(.2, 1.4, .4, 1);
+  }
+  #modal.show .card { transform: scale(1) translateY(0); }
+  #mIcon { font-size: 50px; line-height: 1; filter: drop-shadow(0 6px 10px rgba(0,0,0,.4)); }
+  #mTitle {
+    margin: 10px 0 6px; font-size: 23px; font-weight: 900; letter-spacing: .02em;
+    color: #ffe89e; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  }
+  #mText { margin: 0 0 16px; font-size: 14px; opacity: .92; line-height: 1.45; }
+  #mBtns { display: flex; flex-direction: column; gap: 9px; }
+  .mBtn {
+    padding: 12px 16px; border-radius: 15px; font-size: 15px; font-weight: 800;
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22);
+    box-shadow: 0 4px 0 rgba(0,0,0,.32);
+  }
+  .mBtn.primary {
+    background: linear-gradient(180deg, #6be02b, #339909); color: #fff;
+    border: 2px solid #b8ff85; text-shadow: 0 2px 0 #1b5903;
+    box-shadow: 0 4px 0 #1b5903, 0 8px 18px rgba(51, 153, 9, .35);
+  }
+  .mBtn:active { transform: translateY(2px); }
+  .pseudoInput {
+    width: 100%; margin-top: 10px; padding: 11px 13px; border-radius: 13px; font: inherit; font-size: 17px; font-weight: 800;
+    text-align: center; color: #fff; background: rgba(0, 0, 0, 0.35); border: 2px solid rgba(255, 255, 255, 0.25); outline: none;
+  }
+  .pseudoInput:focus { border-color: var(--gold); }
+  .pseudoErr { display: block; min-height: 1.3em; margin-top: 6px; font-size: 12.5px; color: #ffb0bb; }
+  .worldLine { display: block; margin-top: 8px; font-size: 12.5px; color: #ffe9a8; font-weight: 700; }
+  .pinInput { margin-top: 8px; letter-spacing: 4px; }
+  .pinInput::placeholder { letter-spacing: 0; }
+  .pinHelp { display: block; margin-top: 5px; font-size: 11.5px; opacity: .82; }
+  .topList { max-height: min(44vh, 340px); min-height: 0; margin: 4px -6px 0; }
+  .topList .rankRow { font-size: 12.5px; }
+  .bonusWordsPill {
+    display: flex; flex-wrap: wrap; gap: 5px; justify-content: center;
+    max-height: 180px; overflow-y: auto; padding: 8px; border-radius: 12px;
+    background: rgba(0,0,0,0.28); margin-top: 8px;
+  }
+  .bwTag {
+    padding: 3px 8px; border-radius: 8px; background: rgba(255, 216, 77, 0.18);
+    border: 1px solid rgba(255, 216, 77, 0.4); font-size: 12px; font-weight: 800; color: #ffe89e;
+  }
+
+  @media (max-width: 420px) {
+    #hud { left: 6px; right: 6px; gap: 4px; }
+    .woodBtn { width: 40px; height: 40px; }
+    .resPill { height: 34px; padding: 0 8px 0 5px; font-size: 12.5px; }
+    #sideToolsLeft { left: 8px; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); gap: 11px; }
+    #sideToolsRight { right: 8px; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); gap: 11px; }
+    .roundTool { width: 48px; height: 48px; }
+  }
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mot a Mot"></head>
+<body>
+<canvas id="game"></canvas>
+<canvas id="fx"></canvas>
+
+<div id="hud">
+  <button id="btnHome" class="woodBtn" aria-label="Menu principal">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff8e7" stroke-width="2.6" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+  </button>
+  <div id="lvlPill">
+    <small id="hudTheme">Tous sujets</small>
+    <b id="hudTitle">Niveau 1</b>
+  </div>
+  <div class="resPill" id="gemPill" title="Rubis gagnés sur les cases diamants">
+    <span class="ico">💎</span><span id="gemCount">0</span>
+  </div>
+  <button class="resPill" id="coinPill" title="Pièces d'or (Bonus du jour et mots bonus)">
+    <span class="ico">🪙</span><span id="coinCount">300</span><span class="plus">+</span>
+  </button>
+  <button id="btnSound" class="woodBtn" aria-label="Son activé / coupé"></button>
+</div>
+
+<div id="hintBanner">Touchez une case de la grille à révéler</div>
+
+<div id="sideToolsLeft">
+  <button id="btnShuffle" class="roundTool" aria-label="Mélanger les lettres">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff8e7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
+      <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/>
+    </svg>
+  </button>
+  <button id="btnBonusWords" class="roundTool" aria-label="Mots bonus trouvés">
+    <span class="ico">⭐</span>
+    <span class="toolBadge" id="bonusBadge">0</span>
+    <span class="toolTag" id="bonusTag">0/5</span>
+  </button>
+  <button id="btnDailyGift" class="roundTool" aria-label="Bonus du jour">
+    <span class="ico">🎁</span>
+    <span class="toolTag ribbon" id="giftTag">+30 🪙</span>
+  </button>
+</div>
+
+<div id="sideToolsRight">
+  <button id="btnHintOne" class="roundTool" aria-label="Révéler une lettre au hasard (40 pièces)">
+    <span class="ico">💡</span>
+    <span class="toolTag">40 🪙</span>
+  </button>
+  <button id="btnHintCell" class="roundTool" aria-label="Choisir une case à révéler (80 pièces)">
+    <span class="ico">👆</span>
+    <span class="toolTag">80 🪙</span>
+  </button>
+  <button id="btnHintMulti" class="roundTool" aria-label="Fusée : révéler 3 lettres (160 pièces)">
+    <span class="ico">🚀</span>
+    <span class="toolTag">160 🪙</span>
+  </button>
+</div>
+
+<div id="home">
+  <div class="homeCard">
+    <button id="btnPrefs" class="cornerBtn right" aria-label="Préférences">⚙️</button>
+    <div class="woodSign">
+      <div class="vines"><span>🌻🍀</span><span>🌸🐞</span></div>
+      <div class="subTitle">Jardin de Révision <span class="verBadge" id="gameVersion"></span></div>
+      <div class="signTiles">
+        <span class="signTile">M</span>
+        <span class="signTile">O</span>
+        <span class="signTile">T</span>
+        <span class="signTile">À</span>
+        <span class="signTile">M</span>
+        <span class="signTile">O</span>
+        <span class="signTile">T</span>
+      </div>
+    </div>
+    <p class="tag" id="homeTag">Relie les lettres, fleuris la grille, révise entre amis !</p>
+    <p class="seasonGreet" id="seasonGreet" hidden></p>
+    <button id="updateBar" class="mBtn primary" style="margin-bottom:8px" hidden></button>
+
+    <div id="homeTabs" role="tablist" aria-label="Navigation">
+      <button id="tabLevels" class="homeTab active" role="tab">🗺️ Niveaux</button>
+      <button id="tabDaily" class="homeTab" role="tab">📅 Du Jour</button>
+      <button id="tabModes" class="homeTab" role="tab">⚡ Modes</button>
+      <button id="tabRanks" class="homeTab" role="tab">🏆 Top</button>
+    </div>
+
+    <div id="panelLevels" class="panel show">
+      <div id="themeBar" role="tablist" aria-label="Thème des mots"></div>
+      <p id="themeDesc" class="themeDesc"></p>
+      <div class="playRow">
+        <button id="btnPlay" class="btnGreen3D">NIVEAU 1</button>
+        <button id="btnDailyQuick" class="btnCream3D">PUZZLE DU JOUR<span class="notifDot" id="dailyDot">!</span></button>
+      </div>
+      <p class="homeInfo" id="homeInfo"></p>
+      <div class="secTitle" id="worldHeader">Chapitres & Niveaux</div>
+      <div class="gridWrap" id="gridWrap"><div id="levelGrid"></div></div>
+    </div>
+
+    <div id="panelDaily" class="panel">
+      <div class="calCard">
+        <div class="calHeader">
+          <span>📅 PUZZLE DU JOUR</span>
+          <span id="calMonthName">OCT 2026</span>
+        </div>
+        <div class="chestBar" id="chestBar"></div>
+        <div class="calGrid" id="calGrid"></div>
+      </div>
+      <button id="btnPlayDaily" class="btnGreen3D" style="width:100%">JOUER LE PUZZLE DU JOUR</button>
+      <p class="homeInfo" id="dailyInfo">Gagne jusqu'à 3 🔑 chaque jour (★★★) pour ouvrir les coffres du mois !</p>
+    </div>
+
+    <div id="panelModes" class="panel">
+      <div id="modeList"></div>
+      <div class="secTitle" style="margin-top:8px">🏅 Badges & Collection</div>
+      <div class="badgeGrid" id="badgeGrid"></div>
+    </div>
+
+    <div id="panelRanks" class="panel">
+      <div id="rankChips" class="chips" role="tablist" aria-label="Classements"></div>
+      <div id="rankHead" class="rankHead"></div>
+      <div id="rankList" class="rankList"></div>
+      <p id="rankNote" class="homeInfo"></p>
+    </div>
+
+    <div id="panelPrefs" class="panel">
+      <div class="secTitle">Préférences & Compte</div>
+      <div class="prefList">
+        <button id="prefFaq" class="mBtn">❓ Règles du jeu & Thèmes (FAQ)</button>
+        <button id="prefUpdate" class="mBtn">🔄 Vérifier les mises à jour</button>
+        <button id="prefPseudo" class="mBtn"></button>
+        <button id="prefPin" class="mBtn"></button>
+        <button id="prefLogin" class="mBtn">🔑 J’ai déjà un pseudo (autre appareil)</button>
+        <button id="homeSound" class="mBtn"></button>
+        <button id="homeTools" class="mBtn"></button>
+        <button id="homeFx" class="mBtn"></button>
+        <details class="dangerZone">
+          <summary>⚠️ Zone sensible</summary>
+          <button id="btnResetProgress" class="mBtn dangerBtn">Effacer la progression du thème…</button>
+          <button id="btnDeleteAccount" class="mBtn dangerBtn">Supprimer mon compte en ligne…</button>
+        </details>
+      </div>
+      <button id="prefsBack" class="mBtn" style="margin-top:10px">← Retour</button>
+    </div>
+
+    <div id="panelFaq" class="panel">
+      <div class="secTitle">Règles du jeu</div>
+      <div class="faq">
+        <details open>
+          <summary>🌻 Comment jouer à Mot à Mot ?</summary>
+          <p>Glisse ton doigt (ou la souris) sur les lettres du pot de fleurs pour former des mots et remplir la grille de mots croisés posée sur la pelouse.</p>
+          <p>Chaque mot valide qui ne figure pas dans la grille compte comme <b>⭐ Mot Bonus</b> : tous les 5 mots bonus, tu gagnes une pluie de pièces d'or !</p>
+        </details>
+        <details>
+          <summary>🎓 Les 6 Thèmes de révision</summary>
+          <p>Choisis ton thème sur l'accueil : <b>Tous sujets</b>, <b>Admin Système & Réseaux</b>, <b>IT, Dev & Cloud</b>, <b>Médical & Paramédical</b>, <b>Cybersécurité</b> ou <b>Sciences & Culture</b>.</p>
+          <p>Chaque niveau est construit autour d'un grand <b>mot-souche du thème choisi</b> (6 à 8 lettres) accompagné de mots croisés issus des mêmes lettres. Tous les joueurs ont exactement la même grille pour un niveau et un thème donnés !</p>
+        </details>
+        <details>
+          <summary>🔥 Points, Combos, Rubis et Étoiles</summary>
+          <p>Enchaîner les mots trouvés sans erreur augmente ton <b>Combo</b> (×1, ×2, ×3…) et multiplie tes points !</p>
+          <p>Certaines cases de la grille renferment un <b>💎 Rubis</b> : trouve le mot correspondant pour le récolter. Tu obtiens ★★ avec un combo ×4 et ★★★ avec un combo ×6 (ou sans utiliser d'indice).</p>
+        </details>
+        <details>
+          <summary>💡 Outils et Classements « Sans outils »</summary>
+          <p><b>🔀 Mélanger</b> les lettres du pot est gratuit et ne compte pas comme une aide. En revanche, utiliser <b>💡 Indice (40 🪙)</b>, <b>👆 Case au choix (80 🪙)</b> ou <b>🚀 Fusée 3 lettres (160 🪙)</b> classe ta partie dans la catégorie « 🔨 Avec outils » au lieu de « 🚫 Sans outils ».</p>
+        </details>
+        <details>
+          <summary>📅 Puzzle du Jour, Chrono & Infini</summary>
+          <p><b>Puzzle du Jour</b> : une grille quotidienne identique pour tout le monde (heure de Paris) qui te rapporte jusqu'à 3 clés 🔑 dans le calendrier du mois pour ouvrir 4 coffres !</p>
+          <p><b>Chrono 90s</b> : trouve un maximum de mots en 90 secondes (+4 s par mot de la grille, +10 s par grille terminée).</p>
+          <p><b>Jardin Infini</b> : enchaîne les grilles sans limite de temps, ton score est envoyé au classement à chaque grille terminée.</p>
+        </details>
+        <details>
+          <summary>🏆 Pseudo, Code PIN & Synchronisation</summary>
+          <p>Ton pseudo et ton <b>code PIN (4 à 8 chiffres)</b> te permettent de retrouver toute ta progression (niveaux par thème, étoiles, rubis, pièces, calendrier) sur téléphone, tablette ou PC via « J'ai déjà un pseudo ».</p>
+        </details>
+      </div>
+      <button id="faqBack" class="mBtn" style="margin-top:10px">← Retour</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal">
+  <div class="card">
+    <div id="mIcon"></div>
+    <h2 id="mTitle"></h2>
+    <div id="mText"></div>
+    <div id="mBtns"></div>
+  </div>
+</div>
+<script>
+(() => {
+  'use strict';
+
+  /* =====================================================================
+   * Constantes & Configuration
+   * ===================================================================== */
+  const GAME_VERSION = '1.0';
+  const NET_URL = 'https://enqgjsvqygqxeikfxwxe.supabase.co';
+  const NET_ANON_KEY = 'sb_publishable_0EJZem-TiB4ltXxpQbeZRQ_JAaOjGb9';
+
+  const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+  const SAVE_KEY = /[?&]mock=1\b/.test(location.search) ? 'mot-a-mot-mock' : 'mot-a-mot-v1';
+  const LEVEL_COUNT = 60;
+  const WORLD_SIZE = 10;
+
+  // Les 6 thèmes de révision et de jeu
+  const THEMES = {
+    general: {
+      name: 'Tous sujets', short: '🌿 Général', icon: '🌿',
+      desc: 'Le grand jardin des mots français : nature, quotidien, voyage et littérature.',
+      potTop: '#c96532', potRim: '#e07a44', potDark: '#7a3512',
+      tileTop: '#35a7ff', tileBot: '#1468d1', tileEdge: '#0b3e87',
+      grassA: '#3b7d23', grassB: '#265814'
+    },
+    sysadmin: {
+      name: 'Admin Sys & Réseaux', short: '🖥️ SysAdmin', icon: '🖥️',
+      desc: 'Linux, Windows Server, routage TCP/IP, DNS, VLAN, stockage et virtualisation.',
+      potTop: '#2b6cb0', potRim: '#4299e1', potDark: '#1a365d',
+      tileTop: '#00b5d8', tileBot: '#0987a0', tileEdge: '#065666',
+      grassA: '#236c5e', grassB: '#134239'
+    },
+    it: {
+      name: 'IT, Dev & Cloud', short: '💻 IT & Dev', icon: '💻',
+      desc: 'Algorithmes, code, bases de données, API, web, conteneurs et architecture.',
+      potTop: '#6b46c1', potRim: '#9f7aea', potDark: '#322659',
+      tileTop: '#805ad5', tileBot: '#553c9a', tileEdge: '#322659',
+      grassA: '#2d5a7b', grassB: '#18364d'
+    },
+    medical: {
+      name: 'Médical & Paramédical', short: '🩺 Médical', icon: '🩺',
+      desc: 'Anatomie, sémiologie, pathologies, soins infirmiers, pharmacie et biologie.',
+      potTop: '#c53030', potRim: '#f56565', potDark: '#63171b',
+      tileTop: '#e53e3e', tileBot: '#9b2c2c', tileEdge: '#63171b',
+      grassA: '#2f7a4f', grassB: '#194a2e'
+    },
+    cyber: {
+      name: 'Cybersécurité', short: '🛡️ Cyber', icon: '🛡️',
+      desc: 'Cryptographie, pentest, pare-feu, malwares, audit, SOC et défense réseau.',
+      potTop: '#b7791f', potRim: '#ecc94b', potDark: '#5f370e',
+      tileTop: '#dd6b20', tileBot: '#9c4221', tileEdge: '#652b19',
+      grassA: '#3d5a27', grassB: '#223514'
+    },
+    science: {
+      name: 'Sciences & Culture', short: '🔬 Sciences', icon: '🔬',
+      desc: 'Physique, chimie, astronomie, géologie, vivant et grandes découvertes.',
+      potTop: '#2c7a7b', potRim: '#4fd1c5', potDark: '#1d4044',
+      tileTop: '#38b2ac', tileBot: '#285e61', tileEdge: '#1d4044',
+      grassA: '#346e3f', grassB: '#1c4224'
+    }
+  };
+  const THEME_ORDER = ['general', 'sysadmin', 'it', 'medical', 'cyber', 'science'];
+
+  const MODES = {
+    chrono: {
+      name: 'Chrono 90s', short: 'Chrono', icon: '⏱️', time: 90,
+      desc: '90 secondes pour fleurir un maximum de mots (+4 s par mot, +10 s par grille finie) !'
+    },
+    endless: {
+      name: 'Jardin Infini', short: 'Infini', icon: '♾️',
+      desc: 'Enchaîne les grilles sans fin dans ton thème actif. Score envoyé à chaque grille résolue.'
+    }
+  };
+  const MODE_ORDER = ['chrono', 'endless'];
+
+  const BADGES = [
+    { id: 'first_grid', icon: '🌱', name: 'Première Pousse', desc: 'Terminer sa 1re grille' },
+    { id: 'words_50',   icon: '📖', name: 'Lexicologue',     desc: 'Trouver 50 mots au total' },
+    { id: 'words_250',  icon: '🎓', name: 'Érudit Moli',     desc: 'Trouver 250 mots au total' },
+    { id: 'bonus_20',   icon: '⭐', name: 'Chasseur Bonus',  desc: 'Trouver 20 mots bonus' },
+    { id: 'combo_7',    icon: '🔥', name: 'Série Florale',   desc: 'Atteindre un combo ×7' },
+    { id: 'all_themes', icon: '🌍', name: 'Polyvalent',      desc: 'Gagner 1 niveau dans les 6 thèmes' },
+    { id: 'daily_3',    icon: '📅', name: 'Fidèle du Jardin',desc: 'Gagner 9 clés au Puzzle du Jour' },
+    { id: 'no_tools_10',icon: '🧠', name: 'Pur Esprit',      desc: '10 niveaux gagnés sans outils' }
+  ];
+
+  const PRAISE = ['SUBLIME !', 'MAGNIFIQUE !', 'FANTASTIQUE !', 'INCROYABLE !', 'PRODIGIEUX !', 'SPLENDIDE !', 'LÉGENDAIRE !'];
+  const WORLD_NAMES = [
+    'Sentier des Bourgeons', 'Clairière d’Émeraude', 'Patio des Azulejos', 'Verger des Érudits',
+    'Serre Royale', 'Jardin de Lune', 'Terrasse des Orangers', 'Vallon des Roses',
+    'Bastide Provençale', 'Sanctuaire Moli'
+  ];
+
+  /* =====================================================================
+   * Dictionnaires Thématiques & Socle Français (sans accents, majuscules)
+   * ===================================================================== */
+  // Socle riche de mots français de 3 à 8 lettres permettant de croiser les lettres de n'importe quel mot-souche
+  const BASE_FR = (
+    'ACTE ACTIF ACTIVA ACTIVE ACTIVER ADMET AIDE AIDER AILE AIMER AIR AIRE AIS AISE AIT ALERTE ALLER ALORS ' +
+    'AME AMI AMIE AMOUR ANCIEN ANGE ANGLE ANIME ANIMAL ANNEE APPEL APRES ARBRE ARC ARCHE ARME ARMER ART ' +
+    'ARTE ASILE ASPECT ASSaut ASSEZ ASTRE ATELIER ATOME ATOUT AUBE AUCUN AUDIT AUTEL AUTEUR AUTRE AVAIT ' +
+    'AVAL AVANT AVEC AVENIR AVEU AVION AVIS AVOIR AVRIL AXE AXER AZUR BAC BAGUE BAIE BAIN BAL BANC BANDE ' +
+    'BANQUE BAR BARRE BASE BASER BASSE BATEAU BATIR BEAU BIEN BILAN BILLE BLANC BLE BLEU BLOC BLOND BOIRE ' +
+    'BOIS BOITE BON BOND BORD BORDER BORNE BOSSER BOTTE BOUCHE BOUCLE BOUE BOUGER BOULE BOURG BOUT BOXE ' +
+    'BRAS BRAVE BRECHE BREF BRIDE BRIN BRISE BRISER BRONZE BRUIT BRUME BRUN BRUT BULLE BUREAU BUT CABLE ' +
+    'CABINE CACHER CADRE CAFE CAGE CAHIER CAISSE CALME CALMER CAMION CAMP CANAL CANNE CAP CAPE CARTE CAS ' +
+    'CASE CASER CASSE CASSER CAUSE CAUSER CAVE CEINT CELA CELLE CELUI CENDRE CENT CENTRE CERCLE CERF ' +
+    'CERTES CESSE CESSER CHAIR CHAIRE CHALEUR CHAMP CHANCE CHANT CHANTER CHAR CHARGE CHARME CHASSE CHAT ' +
+    'CHAUD CHEF CHEMIN CHER CHERE CHERIR CHEVAL CHEVEU CHIEN CHIFFRE CHOC CHOIX CHOSE CHUTE CHUTER CIBLE ' +
+    'CIEL CIME CIMENT CINE CITE CITER CLAIR CLAIRE CLAN CLASSE CLASSER CLE CLEF CLIMAT CLIN CLORE CLOS ' +
+    'CLOU CLUB CODE CODER COEUR COIN COL COLEUR COLLER COLERE COLONNE COMBAT COMBIEN COMETE COMITE COMME ' +
+    'COMMUN COMPTE COMPTER CONTE CONTER CONTRE COPIE COPIER CORDE CORNE CORPS COTE COTER COU COUCHE ' +
+    'COUCHER COUDE COULER COULEUR COUP COUPE COUPER COUR COURAGE COURBE COURIR COURS COURSE COURT COUT ' +
+    'COUTER COUVRIR CRAIE CRAINCRANE CREER CREME CREUX CRI CRIER CRIME CRISE CRISTAL CROIRE CROIX CRUEL ' +
+    'CUBE CUIR CUIRE CUIVRE CULTE CURE CURIEUX CYCLE DAME DANGER DANS DANSE DANSER DATE DATER DEBAT ' +
+    'DEBIT DEBOUT DEBUT DECIDER DECLIN DECOR DEDANS DEFAUT DEFI DEGRE DELAI DELICE DEMAIN DEMI DEMON ' +
+    'DENSE DENT DEPART DEPIT DEPUIS DERNIER DERIVE DESERT DESIR DESSIN DESSUS DETTE DEUIL DEUX DEVANT ' +
+    'DEVENIR DEVOIR DIGNE DIRE DIRECT DISQUE DIT DIVERS DIX DOIGT DOMAINE DON DONC DONNEE DONNER DONT ' +
+    'DORER DORMIR DOS DOSE DOSER DOSSIER DOUBLDOUCE DOUTE DOUTER DOUX DOUZE DRAME DRAP DROIT DROITE ' +
+    'DROLE DUC DUNE DUR DURANT DURE DUREE DURER EAU ECART ECHEC ECHELLE ECHO ECOLE ECOUTE ECOUTER ECRAN ' +
+    'ECRIRE ECRIT ECU EDITER EFFET EFFORT EGAL EGALER EGLISE ELAN ELIRE ELITE ELLE EMOI EMPIRE EMPLOI ' +
+    'ENCORE ENCRE ENFANT ENFER ENFIN ENJEU ENNEMI ENORME ENSEMBLE ENSUITE ENTER ENTRER ENVIE ENVOI ' +
+    'EPAIS EPAULE EPEE EPI EPINE EPOQUE EPOUX EPREUVE EQUILIBRE EQUIPE ERREUR ESCALE ESPACE ESPOIR ESPRIT ' +
+    'ESSAI ESSOR EST ETAGE ETAL ETALER ETANG ETAPE ETAT ETE ETEINDRE ETENDRE ETERNEL ETOILE ETONNER ' +
+    'ETRE ETROIT ETUDE ETUDIER EVITER EXACT EXAMEN EXIL EXISTER EXPERT EXPLOIT EXPOSER EXTRA FACE FACILE ' +
+    'FACON FAIBLE FAIM FAIRE FAITFAITE FALLOIR FAMEUX FAMILLE FANE FANER FARCE FARD FATAL FAUTE FAVEUR ' +
+    'FAUX FEMME FENDRE FENETRE FER FERME FERMER FEROCE FETE FETER FEU FEUILLE FIBRE FICHE FICHER FIER ' +
+    'FIEVRE FIGURE FIL FILE FILER FILET FILLE FILM FILS FILTRE FIN FINAL FINE FINIR FIXE FIXER FLAMME ' +
+    'FLANC FLASH FLECHE FLEUR FLEUVE FLOT FLOU FLUX FOI FOIE FOIRE FOIS FOND FONDER FONDRE FORCE FORCER ' +
+    'FORET FORME FORMER FORT FORTE FORUM FOSSE FOoule FOUR FOYER FRAIS FRANC FRAPPER FRERE FREIN FROID ' +
+    'FRONT FRUIT FUIRE FUITE FUMEE FUMER FUSIL FUTUR GAGE Gagner GAI GAINE GALAXIE GAMME GANT GARCON ' +
+    'GARDE GARDER GARE GARER GAUCHE GAZ GEANT GELER GENOU GENRE GENS GESTE GLACE GLACER GLANDE GLISSER ' +
+    'GLOBE GLOIRE GOLFE GORGE GOUT GOUTER GOUTTE GRACE GRADE GRAIN GRAINE GRAND GRANDEUR GRAPHE GRAS ' +
+    'GRAVE GRAVER GREFFE GREVE GRILLE GRIS GRISE GROS GROSSE GROTTE GROUPE GUERE GUERIR GUERRE GUIDE ' +
+    'GUIDER HABIT HABITER HACHE HAIE HAINE HALEINE HALTE HANCHE HASARD HATE HATER HAUT HAUTEUR HERBE ' +
+    'HEROS HEURE HEUREUX HIER HIVER HOMME HONNEUR HONTE HORIZON HORS HOTE HOTEL HUILE HUMAIN HUMEUR ' +
+    'HUMIDE IDEAL IDEE IGNORER ILE IMAGE IMITER IMMENSE IMPACT IMPOT INCENDIE INDICE INFuser INGRat ' +
+    'INJUSTE INSECTE INSTANT INTIME INUTILE INVITER IRE IRISER ISOLER ISSUE IVRE JADIS JALOUX JAMAIS ' +
+    'JAMBE JARDIN JAUNE JETER JEU JEUNE JEUNESSE JOIE JOINDRE JOLI JOUER JOUET JOUR JOURNAL JUGE JUGER ' +
+    'JUIN JUNGLE JURER JUS JUSQUE JUSTE LAC LACER LACHE LACHER LAINE LAISSER LAIT LAME LANCE LANCER ' +
+    'LANGUE LARGE LARME LAS LASSER LAVER LECON LECTURE LEGER LENDEMAIN LENT LENTE LETTRE LEUR LEVER ' +
+    'LEVRE LIANE LIBRE LIEN LIER LIEU LIGNE LIGNER LIME LIMER LIMITE LIMITER LINGE LION LIRE LIS LISSE ' +
+    'LISSER LISTE LIT LIVRE LIVRER LOCAL LOI LOIN LONG LONGUE LORS LOUER LOUP LOURD LOYAL LUEUR LUI ' +
+    'LUIRE LUMIERE LUNE LUTTE LUTTER LUXE LYCEE MACHINE MADAME MAGIE MAI MAIGRE MAIN MAINT MAISON ' +
+    'MAITRE MAL MALADE MALE MALGRE MALIN MAMAN MANCHE MANGER MANIERE MANQUE MANQUER MANTEAU MARCHE ' +
+    'MARCHER MARDI MARE MAREE MARGE MARI MARIER MARIN MARINE MARQUE MARQUER MARS MASQUE MASSE MAT ' +
+    'MATIERE MATIN MAUVAIS MAXIME MEDECIN MEILLEUR MELER MEMBRE MEME MEMOIRE MENACE MENACER MENER ' +
+    'MENSONGE MENTIR MENU MER MERCI MERE MERITE MERITER MESURE MESURER METAL METIER METRE METTRE MIDI ' +
+    'MIEL MIEN MIEUX MILIEU MILLE MINCE MINE MINER MINUIT MINUTE MIROIR MISE MISERE MODE MODELE MODERNE ' +
+    'MOELLE MOINS MOIS MOITIE MONDE MONSTRE MONT MONTER MONTRE MONTRER MORAL MORCEAU MORDRE MORT MORTE ' +
+    'MOT MOTEUR MOTIF MOU MOUCHE MOULE MOULIN MOURIR MOUSSE MOUTON MOUVOIR MOYEN MUET MUR MURE MURIR ' +
+    'MUSCLE MUSEE MUSIQUE MYTHE NAGE NAGER NAIF NAIN NAITRE NATION NATURE NAVIRE NEANT NEIGE NERF ' +
+    'NET NETTE NEUF NEUTRE NEVEU NEZ NIèce NIVEAU NOBLE NOEUD NOIR NOIRE NOM NOMBRE NOMMER NON NORD ' +
+    'NORME NOTE NOTER NOTRE NOUER NOUVEAU NOYAU NOYER NUAGE NUIRE NUIT NUL NULLE KILO OCEAN ODEUR ' +
+    'OEIL OEUF OEUVRE OFFRE OFFRIR OISEAU OMBRE ONCLE ONDE ONGLE ORAGE ORAL ORBITE ORDRE ORGANE ORGUEIL ' +
+    'ORIENT ORNER OSER OTER OUEST OUBLI OUBLIER OUI OUTIL OUTRE OUVERT OUVRAGE OUVRIR OXYGENE PAGE ' +
+    'PAIE PAIN PAIRE PAIX PALAIS PALE PALME PANIER PANNE PAPA PAPIER PAQUET PAR PARC PARDON PAREIL ' +
+    'PARENT PARFAIT PARFOIS PARFUM PARI PARIER PARIS PARLER PARMI PAROI PAROLE PART PARTAGE PARTAGER ' +
+    'PARTI PARTIE PARTIR PARTOUT PAS PASSAGE PASSE PASSER PASSION PASTEUR PATIENCE PATRIE PATRON PAUME ' +
+    'PAUSE PAUVRE PAYER PAYS PAYSAGE PEAU PECHE PECHER PEINE PEINDRE PEINTRE PELER PENCHER PENDANT ' +
+    'PENDRE PENSEE PENSER PERDRE PERE PERIL PERLE PERMETTRE PERSONNE PERTE PESER PETIT PEU PEUPLE PEUR ' +
+    'PHASE PHOTO PHRASE PIECE PIED PIERRE PIEGE PILIER PILOTE PIN PINCE PINCER PIQUER PIRE PISTE PITIE ' +
+    'PLACE PLACER PLAGE PLAIE PLAINE PLAIRE PLAISIR PLAN PLANCHE PLANETE PLANTE PLANTER PLAT PLATEAU ' +
+    'PLEIN PLEURER PLI PLIER PLOMB PLONGER PLUIE PLUME PLUS POCHE POEME POETE POIDS POIL POING POINT ' +
+    'POINTE POINTER POISON POISSON POITRINE POLE POLICE POLIR POLITIQUE POMME PONT PORC PORT PORTE ' +
+    'PORTER PORTRAIT POSE POSER POSTE POT POUCE POUDRE POULE POUMON POUR POURQUOI POUSSER POUTRE ' +
+    'POUVOIR PRAIRIE PRATIQUE PRE PRECIS PREMIER PRENDRE PREPARER PRES PRESENCE PRESENT PRESQUE PRESSER ' +
+    'PRET PRETER PREUVE PRIER PRIERE PRINCE PRINCIPE PRINTEMPS PRIS PRISE PRISON PRIX PROCHE PRODUIRE ' +
+    'PRODUIT PROFIT PROFOND PROGRES PROIE PROJET PROMESSE PROMETTRE PROPOS PROPRE PROTEGER PROUVER ' +
+    'PUBLIC PUIS PUISQUE PUISSANT PUITS PUNIR PUR PURE QUAI QUALITE QUAND QUANT QUART QUATRE QUE QUEL ' +
+    'QUELLE QUERELLE QUESTION QUEUE QUI QUINZE QUITTER QUOI RACE RACHAT RACINE RADE RADIO RAGE RAIDE ' +
+    'RAIE RAIL RAISIN RAISON RAMASSER RAME RAMER RAMEAU RANG RANGER RAPIDE RARE RASE RASER RAT RATER ' +
+    'RAVIR RAYON REAGIR REALITE RECEVOIR RECIT RECLAMER RECOLTE RECUL RECULER REDUIRE REEL REELLE ' +
+    'REFLET REFUGE REFUS REFUSER REGARD REGARDER REGIME REGION REGLE REGLER REGNE REGNER REGRET REINE ' +
+    'REJETER RELATION RELEVER RELIER RELIGION REMARQUE REMEDE REMETTRE REMPLIR REMUER RENARD RENDRE ' +
+    'RENOM RENTE RENTRER REPAS REPETER REPONDRE REPONSE REPOS REPOSER REPRENDRE REPROCHE RESEAU RESERVE ' +
+    'RESISTER RESPECT RESPIRER RESTE RESTER RESULTAT RETARD RETENIR RETIRER RETOUR RETOURNER REUNION ' +
+    'REUNIR REUSSIR REVE REVEIL REVEILLER REVELER REVENIR REVENU REVER REVERS REVOIR REVUE RICHE ' +
+    'RIDEAU RIEN RIGIDE RIME RIMER KIRE RISQUE RISQUER RIVAGE RIVE RIVIERE ROBE ROCHE ROCHER ROI ' +
+    'ROLE ROMAN ROMPRE ROND RONDE ROSE ROUE ROUER ROUGE ROULER ROUTE RUBAN RUDE RUE RUELLE RUINE ' +
+    'RUINER RUMEUR RUSE SABLE SAC SACRE SAGE SAGESSE SAIN SAINE SAISIR SAISON SALAIRE SALLE SALON ' +
+    'SALUER SALUT SANG SANTE SAPIN SATISFAIRE SAUT SAUTER SAUVAGE SAUVER SAVOIR SAVON SCENE SCIENCE ' +
+    'SCULPTER SEC SECHER SECOND SECONDE SECOURS SECRET SECTEUR SEIGNEUR SEIN SEIZE SEJOUR SEL SELON ' +
+    'SEMAINE SEMBLER SEMER SENS SENTIER SENTIMENT SENTIR SEPT SERIE SERIEUX SERMENT SERPENT SERRER ' +
+    'SERVIR SERVICE SEUIL SEUL SEULE SEULEMENT SIECLE SIEGE SIEN SIGNE SIGNER SILENCE SIMPLE SINCERE ' +
+    'SINGE SITE SITUER SIX SOCIAL SOCIETE SOEUR SOIE SOIF SOIN SOIR SOIREE SOL SOLDAT SOLEIL SOLIDE ' +
+    'SOLITUDE SOMBRE SOMME SOMMEIL SOMMET SON SONDE SONDER SONGE SONGER SONNER SORT SORTE SORTIE ' +
+    'SORTIR SOT SOUCI SOUDAIN SOUFFLER SOUFFRIR SOUHAIT SOUPCON SOUPE SOUPIR SOUPLE SOURCE SOURD ' +
+    'SOURIRE SOURIS SOUS SOUTENIR SOUVENIR SOUVENT SPECTACLE SPHERE SPORT STABLE STADE STATUE STYLE ' +
+    'SUBIR SUBTIL SUCCES SUCRE SUD SUER SUFFIRE SUITE SUIVANT SUIVRE SUJET SUPERBE SUPPORTER SUPREME ' +
+    'SUR SURE SURFACE SURPRENDRE SURTOUT SYMBOLE SYSTEME TABLE TABLEAU TACHE TACHER TAILLE TAILLER ' +
+    'TAIRE TALENT TALON TAMBOUR TANDIS TANT TANTE TAPER TAPIS TARD TARIF TAS TASSE TATER TAUX TEL ' +
+    'TELLE TEMOIN TEMPETE TEMPLE TEMPS TENDRE TENDRESSE TENTE TENTER TENU TENUE TERME TERRAIN TERRE ' +
+    'TERREUR TERRIBLE TETE TEXTE THEME THEATRE TIEDE TIEN TIERS TIGRE TIMIDE TIR TIRER TISSU TITRE ' +
+    'TOILE TOIT TOMBE TOMBER TON TONNE TORT TOT TOUCHER TOUJOURS TOUR TOURNER TOUT TOUTE TRACE TRACER ' +
+    'TRAIN TRAINER TRAIRE TRAIT TRAITE TRAITER TRAME TRANCHE TRANQUILLE TRAVAIL TRAVERS TREMBLER ' +
+    'TRENTE TRES TRESOR TRIBU TRISTE TROIS TRONE TROP TROU TROUBLE TROUBLER TROUPE TROUVER TUER ' +
+    'TUILE TUBE TYPE TYRAN UNION UNIQUE UNIR UNIT UNITE UNIVERS USAGE USER USINE UTILE VACANCE ' +
+    'VACHE VAGUE VAIN VAINCRE VALEUR VALISE VALLEE VALOIR VANITE VAPEUR VARIER VASTE VEILLE VEILLER ' +
+    'VEINE VELOURS VENDRE VENGER VENIN VENIR VENT VENTE VENTRE VER VERBE VERITE VERRE VERS VERSER ' +
+    'VERT VERTU VESTE VETIR VEUF VEUVE VIABLE VIANDE VICTIME VIDE VIDER VIE VIEIL VIEUX VIF VIGNE ' +
+    'VIGUEUR VIL VILLAGE VILLE VIN VIOLENT VIOLON VIPERE VISAGE VISER VISIBLE VISION VISITE VISITER ' +
+    'VITE VITESSE VITRE VIVANT VIVRE VOEU VOICI VOIE VOILE VOILER VOIR VOISIN VOITURE VOIX VOL ' +
+    'VOLCAN VOLER VOLET VOLEUR VOLONTE VOTREK VOUER VOULOIR VOYAGE VOYAGER VRAI VRAIE VUE WAGON ' +
+    'ZEBRE ZELE ZENITH ZERO ZONE'
+  ).split(/\s+/);
+
+  // Mots spécifiques par thème (les mots de 6 à 8 lettres servent de mots-souches aux niveaux !)
+  const THEME_WORDS = {
+    general: (
+      'JARDINER FLEURIR VERDURE PELOUSE TERRASSE ORANGER LAVANDE JASMIN ROSERAIEBOSQUET ' +
+      'FEUILLAGE BOURGEON RACINES PETALES COROLLE BOUTURE ARROSER SEMAILLES RECOLTER SENTIER ' +
+      'FONTAINE TONNELLE PERGOLA TREILLE ABEILLE PAPILLON NICHOIR VERGER PRAIRIE CLAIRIERE ' +
+      'SOLEIL LUMIERE PRINTEMPS AUTOMNE HORIZON PAYSAGE NATUREL RIVIERE CASCADE COLLINE ' +
+      'MONTAGNE VALLEE FORETS OCEANS ETOILES PLANETE VOYAGER PARTAGER SOURIRE BONHEUR ' +
+      'MUSIQUE PEINTURE LECTURE HISTOIRE ROMANS POESIE THEATRE CINEMA CULTURE TRADITION'
+    ).split(/\s+/),
+
+    sysadmin: (
+      'ROUTEUR SERVEUR RESEAUX PAQUETS CONSOLE SYSTEME LATENCE DOMAINE CLUSTER ARCHIVE ' +
+      'SESSION TERMINAL ROUTAGE FIREWALL PASSERELLE ADRESSAGE MASQUES SUBNETS SWITCHS BRIDGES ' +
+      'SOCKETS TUNNELS DAEMONS SERVICES PROCESSUS NOYAUX DISQUES VOLUMES PARTAGES QUOTAS ' +
+      'BACKUPS MIROIRS RELAIS PILOTES SCRIPTS PORTAILS ALERTES SONDES GRAPHES NOEUDS ' +
+      'TRAMES FIBRES CABLES PORTS HOTE HOTES CLIENT CLIENTS PROXY CACHE NOYAU DISQUE ' +
+      'VOLUME QUOTA PILOTE SCRIPT ALERTE SONDE TRAME FIBRE CABLE PORT RELAIS MIROIR ' +
+      'PAQUET ROUTER MONTER DEMONTER JOURNAL CRONTAB SYSTEMD NETMASK GATEWAY VLAN DNS ' +
+      'DHCP SSH LDAP RAID LACP BONDING VMWARE PROXMOX HYPERV DEBIAN UBUNTU REDhat ' +
+      'LINUX WINDOWS ACTIVE DOSSIER DROITS GROUPE COMPTE RACINE BASH SHELL ZFS NFS ' +
+      'SAMBA ISCSI ANSIBLE PUPPET NAGIOS ZABBIX GRAFANA PROMETHEUS'
+    ).split(/\s+/),
+
+    it: (
+      'COMPILER DEPLOYER TABLEAUX VECTEURS MATRICES METHODES POINTEUR PIPELINE SYNTAXES REQUETES ' +
+      'MODULES CLASSES BOUCLES CURSEUR DONNEES SCHEMAS SOURCES THREADS VALEURS BRANCHES ' +
+      'COMMITS PARSERS MOTEURS TYPAGES PROMISES SERVEURS CLIENTS OBJETS PAQUETS GRAPHES ' +
+      'INDEXER CODAGES LOGIQUE MEMOIRE TAMPONS FICHIERS DOSSIERS INTERFACES FONCTION VARIABLE ' +
+      'CONSTANTE HERITAGE ABSTRAIT GENERIQUE ITERATEUR RECURSIF ASYNCHRONE CALLBACK WEBSOCKET ' +
+      'RESTFUL GRAPHQL DOCKER KUBERNETES CONTENEUR IMAGE REGISTRE CLUSTER PODS INGRESS ' +
+      'PYTHON JAVASCRIPT TYPESCRIPT GOLANG RUSTlang REACT ANGULAR SVELTE NODEJS EXPRESS ' +
+      'POSTGRES MONGODB REDIS ELASTIC KAFKA RABBITMQ GITLAB GITHUB JENKINS TERRAFORM ' +
+      'BOUCLE CLASSE CURSEUR DONNEE MODULE OBJET PAQUET REQUETE SCHEMA SOURCE TABLEAU ' +
+      'THREAD VALEUR VECTEUR BRANCHE CACHE CLIENT CLONE COMMIT DEBUG GRAPHE MATRICE ' +
+      'METHODE MOTEUR NOEUD PARSER PIPELINE PORTAIL SYNTAXE JETON TYPAGE CODE BUG API SQL'
+    ).split(/\s+/),
+
+    medical: (
+      'ARTERES CELLULES CLINIQUE ENZYMES GREFFONS HORMONES LESIONS NEURONES ORGANES PLASMAS ' +
+      'POUMONS RETINES SUTURER TENDONS VACCINS ANEMIES BIOPSIE CORTEX GLANDES IMMUNES ' +
+      'MOELLES TISSUS ULCERES VEINES THORAX AORTES BASSIN CRANES FEMURS HUMERUS ' +
+      'ROTULES TIBIAS VERTèBRE BRONCHES LARYNX PHARYNX TRACHEE ESTOMAC FOIES INTESTIN ' +
+      'PANCREAS RATES REINS VESSIE OREILLETTE VENTRICULE VALVULE CAPILLAIRE GLOBULE PLAQUETTE ' +
+      'ANTICORPS ANTIGENE BACTERIE PARASITE INFECTION INFLAMMER FRACTURE ENTORSE LUXATION ' +
+      'OEDEME ISCHEMIE INFARCTUS EMBOLIE THROMBOSE FIBROSE NECROSE TUMEUR KYSTE ABCES ' +
+      'SYMPTOME SYNDROME DIAGNOSTIC PRONOSTIC THERAPIE POSOLOGIE INJECTION PERFUSION PONCTION ' +
+      'PANSEMENT DRAINAGE SONDER INTUBER VENTILER MASSAGE URGENCE PATIENTS SOIGNANT INFIRMIER ' +
+      'CHIRURGIE PEDIATRIE GERIATRIE ONCOLOGIE CARDIAQUE RENALE HEPATIQUE NEUROLOGIE ' +
+      'ARTERE CELLULE ENZYME GREFFE HORMONE LESION NEURONE ORGANE PLASMA POUMON RETINE ' +
+      'SUTURE TENDON VACCIN ANEMIE AORTE FIBRE GLANDE MOELLE SERUM TISSU ULCERE VEINE ' +
+      'VIRUS NERF SOIN DOSE CURE POULS SANG OS REIN FOIE RATE COEUR PEAU'
+    ).split(/\s+/),
+
+    cyber: (
+      'ATTAQUES BRECHES CHIFFRER CRYPTAGE FAILLES FILTRAGE HACKERS HASHAGES INTRUSIONS MALWARES ' +
+      'MENACES PHISHING PIRATES RANCONS RESEAUX RISQUES SECRETS SONDES TRACES TROJans ' +
+      'TUNNELS VERROUS ALERTES AUDITER LEURRES SPOOFING EXPLOITS PAYLOADS ROOTKITS BOTNETS ' +
+      'KEYLOGGER RANSOMWARE SPYWARE ADWARE BACKDOOR ZEROday SANDBOX HONEYPOT FIREWALL BASTION ' +
+      'PROXYS SIEM SOAR EDR XDR PENTEST REDTEAM BLUETEAM FORENSIC ANALYSE INCIDENT ' +
+      'CERTIFICAT SIGNATURE CLEFS JETONS SESSION AUTHENTIFIER IDENTITE PRIVILEGE ESCALADE ' +
+      'INJECTION XSS CSRF SSRF BUFFER OVERFLOW BRUTEFORCE DICTIONNAIRE RAINBOW SALAGE ' +
+      'AES RSA ECDSA SHA256 TLS IPSEC WIREGUARD OPENVPN KERBEROS RADIUS TACACS ' +
+      'ALERTE ATTAQUE AUDIT BRECHE CHIFFRE CLEF CRYPTO FAILLE FILTRE FUITE HACKER ' +
+      'INTRUS JETON LEURRE MALWARE MENACE PIRATE RANCON RESEAU RISQUE SECRET SONDE ' +
+      'SPOOF TRACE TROJAN TUNNEL VERROU VIRUS CODE CLE PONT PORT MUR LOG'
+    ).split(/\s+/),
+
+    science: (
+      'ATOMIQUE CELLULES COMETES CRISTAL ENERGIES ETOILES FOSSILES GALAXIES GRAVITE LUMIERES ' +
+      'MATIERES MOLECULE NEUTRONS ORBITES OXYGENES PHOTONS PLANETES PLASMAS PRISMES PROTONS ' +
+      'SPECTRES VOLCANS ZENITHS ELECTRONS QUARKS BOSONS FUSION FISSION ISOTOPE RADIATION ' +
+      'ONDES FREQUENCE AMPLITUDE LONGUEUR SPECTRAL OPTIQUE LENTILLE DIFFRACTION REFRACTION ' +
+      'MAGNETIQUE ELECTRIQUE COURANT TENSION RESISTANCE CAPACITE INDUCTANCE THERMIQUE ENTROPIE ' +
+      'PRESSION VOLUME DENSITE VISCOSITE CATALYSE REACTION SOLUTION ACIDE BASIQUE OXYDATION ' +
+      'CARBONE AZOTE HYDROGENE HELIUM SILICIUM FERROUX CUIVRE ARGENT PLATINE MERCURE ' +
+      'NEBULEUSE SUPERNOVA PULSAR QUASAR ASTEROIDE METEORE ECLIPSE SOLSTICE EQUINOXE ' +
+      'TECTONIQUE SEISME MAGMA BASALTE GRANITE SEDIMENT EROSION GLACIER CLIMAT BIOSPHERE ' +
+      'GENOME CHROMOSOME MITOSE MEIOSE PROTEINE CHLOROPHYLLE ECOSYSTEME EVOLUTION ESPECE ' +
+      'ATOME COMETE ENERGIE ETOILE FOSSILE GALAXIE LUMIERE MAGMA MATIERE NEUTRON ORBITE ' +
+      'OXYGENE PHOTON PLANETE PLASMA PRISME PROTON QUARTZ SPECTRE VOLCAN ZENITH ONDE GAZ'
+    ).split(/\s+/)
+  };
+
+  // Normalisation majuscules A-Z sans accents
+  const normWord = w => String(w || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z]/g, '');
+
+  // Construction du dictionnaire global et des listes par thème
+  const ALL_WORDS_SET = new Set();
+  const THEME_SET = {};
+  const THEME_ROOTS = {};
+
+  for (const w of BASE_FR) {
+    const nw = normWord(w);
+    if (nw.length >= 3 && nw.length <= 8) ALL_WORDS_SET.add(nw);
+  }
+  for (const k of THEME_ORDER) {
+    THEME_SET[k] = new Set();
+    for (const w of THEME_WORDS[k]) {
+      const nw = normWord(w);
+      if (nw.length >= 3 && nw.length <= 8) {
+        ALL_WORDS_SET.add(nw);
+        THEME_SET[k].add(nw);
+      }
+    }
+    // Mots-souches de 6 à 8 lettres du thème ayant suffisamment de sous-mots croisés
+    THEME_ROOTS[k] = [...THEME_SET[k]].filter(w => w.length >= 6 && w.length <= 8);
+  }
+  const ALL_WORDS = [...ALL_WORDS_SET];
+
+  // Vérifie si un mot `sub` peut être écrit avec les lettres de `lettersArr`
+  function canForm(sub, counts) {
+    const c = {};
+    for (let i = 0; i < sub.length; i++) {
+      const ch = sub[i];
+      c[ch] = (c[ch] || 0) + 1;
+      if (!counts[ch] || c[ch] > counts[ch]) return false;
+    }
+    return true;
+  }
+  function letterCounts(word) {
+    const c = {};
+    for (let i = 0; i < word.length; i++) c[word[i]] = (c[word[i]] || 0) + 1;
+    return c;
+  }
+
+  /* =====================================================================
+   * Générateur déterministe de Grilles de Mots Croisés (par Thème & Graine)
+   * ===================================================================== */
+  function mulberry(seed) {
+    let a = seed | 0;
+    return () => {
+      a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function hashStr(str) {
+    let h = 2166136261;
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  }
+
+  /**
+   * Génère une grille complète de mots croisés à partir d'une clé de graine (`seedKey`),
+   * d'un thème (`themeKey`) et d'un numéro de niveau (`levelNum`).
+   * Identique pour tous les joueurs (déterministe).
+   */
+  function generateCrossword(seedKey, themeKey, levelNum = 1) {
+    const rng = mulberry(hashStr(seedKey));
+    const tSet = THEME_SET[themeKey] || THEME_SET.general;
+    const roots = THEME_ROOTS[themeKey] && THEME_ROOTS[themeKey].length ? THEME_ROOTS[themeKey] : THEME_ROOTS.general;
+
+    // On choisit un mot-souche qui possède au moins 6 sous-mots dans le dictionnaire
+    const startIdx = Math.floor(rng() * roots.length);
+    let rootWord = roots[startIdx];
+    let subWords = [];
+
+    for (let attempt = 0; attempt < roots.length; attempt++) {
+      const candidate = roots[(startIdx + attempt) % roots.length];
+      // Premiers niveaux plus accessibles (6-7 lettres), puis jusqu'à 8 lettres
+      if (levelNum <= 3 && candidate.length > 7) continue;
+      const counts = letterCounts(candidate);
+      const subs = ALL_WORDS.filter(w => canForm(w, counts));
+      if (subs.length >= 6) {
+        rootWord = candidate;
+        subWords = subs;
+        break;
+      }
+    }
+
+    // Tri des candidats : le mot-souche en premier, puis les mots du thème, puis par longueur
+    const scored = subWords.map(w => ({
+      w,
+      isRoot: w === rootWord ? 1 : 0,
+      isTheme: tSet.has(w) ? 1 : 0,
+      len: w.length,
+      r: rng()
+    })).sort((a, b) => (b.isRoot - a.isRoot) || (b.isTheme - a.isTheme) || (b.len - a.len) || (a.r - b.r));
+
+    const targetWordCount = Math.min(9, Math.max(5, 5 + Math.floor(levelNum / 4)));
+    const placed = []; // { word, dir: 'H'|'V', r, c, isTheme }
+    const grid = new Map(); // "r,c" -> { ch, hWord, vWord }
+    const kOf = (r, c) => `${r},${c}`;
+
+    function getCell(r, c) { return grid.get(kOf(r, c)) || null; }
+    function setCell(r, c, ch, dir, wObj) {
+      const k = kOf(r, c);
+      const cur = grid.get(k) || { r, c, ch, h: false, v: false };
+      cur.ch = ch;
+      if (dir === 'H') cur.h = true; else cur.v = true;
+      grid.set(k, cur);
+    }
+
+    function canPlace(word, dir, r0, c0) {
+      const dr = dir === 'V' ? 1 : 0;
+      const dc = dir === 'H' ? 1 : 0;
+      // La case juste avant le début et juste après la fin doit être libre
+      if (getCell(r0 - dr, c0 - dc) || getCell(r0 + dr * word.length, c0 + dc * word.length)) return false;
+
+      let intersections = 0;
+      for (let i = 0; i < word.length; i++) {
+        const r = r0 + dr * i;
+        const c = c0 + dc * i;
+        const existing = getCell(r, c);
+        if (existing) {
+          if (existing.ch !== word[i]) return false;
+          // Pas deux mots dans la même direction qui se chevauchent
+          if ((dir === 'H' && existing.h) || (dir === 'V' && existing.v)) return false;
+          intersections++;
+        } else {
+          // Pas de voisin parallèle collé (sinon ça créerait des mots parasites de 2 lettres)
+          const n1 = dir === 'H' ? getCell(r - 1, c) : getCell(r, c - 1);
+          const n2 = dir === 'H' ? getCell(r + 1, c) : getCell(r, c + 1);
+          if (n1 || n2) return false;
+        }
+      }
+      return intersections > 0;
+    }
+
+    function placeWord(word, dir, r0, c0) {
+      const dr = dir === 'V' ? 1 : 0;
+      const dc = dir === 'H' ? 1 : 0;
+      const wObj = {
+        word, dir, r: r0, c: c0,
+        isTheme: tSet.has(word),
+        found: false,
+        cells: []
+      };
+      for (let i = 0; i < word.length; i++) {
+        const r = r0 + dr * i, c = c0 + dc * i;
+        setCell(r, c, word[i], dir, wObj);
+        wObj.cells.push({ r, c });
+      }
+      placed.push(wObj);
+    }
+
+    // 1. Placer le mot-souche horizontalement en (0, 0)
+    placeWord(rootWord, 'H', 0, 0);
+
+    // 2. Placer les mots suivants en les croisant
+    for (const item of scored) {
+      if (placed.length >= targetWordCount) break;
+      if (placed.some(p => p.word === item.w)) continue;
+      const w = item.w;
+      const candidates = [];
+
+      for (const p of placed) {
+        const nextDir = p.dir === 'H' ? 'V' : 'H';
+        for (let i = 0; i < p.word.length; i++) {
+          for (let j = 0; j < w.length; j++) {
+            if (p.word[i] !== w[j]) continue;
+            const r0 = p.dir === 'H' ? p.r - j : p.r + i;
+            const c0 = p.dir === 'H' ? p.c + i : p.c - j;
+            if (canPlace(w, nextDir, r0, c0)) {
+              // Favoriser une grille compacte proche du centre
+              const dist = Math.abs(r0) + Math.abs(c0);
+              candidates.push({ dir: nextDir, r0, c0, dist });
+            }
+          }
+        }
+      }
+      if (candidates.length) {
+        candidates.sort((a, b) => a.dist - b.dist);
+        const best = candidates[0];
+        placeWord(w, best.dir, best.r0, best.c0);
+      }
+    }
+
+    // S'il y a moins de 4 mots croisés (rare), on ajoute une 2e passe
+    if (placed.length < 4) {
+      for (const item of scored) {
+        if (placed.length >= 6) break;
+        if (placed.some(p => p.word === item.w)) continue;
+        const w = item.w;
+        for (const p of placed) {
+          const nextDir = p.dir === 'H' ? 'V' : 'H';
+          let done = false;
+          for (let i = 0; i < p.word.length && !done; i++) {
+            for (let j = 0; j < w.length && !done; j++) {
+              if (p.word[i] !== w[j]) continue;
+              const r0 = p.dir === 'H' ? p.r - j : p.r + i;
+              const c0 = p.dir === 'H' ? p.c + i : p.c - j;
+              if (canPlace(w, nextDir, r0, c0)) {
+                placeWord(w, nextDir, r0, c0);
+                done = true;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Normalisation des coordonnées (0..rows-1, 0..cols-1)
+    let minR = Infinity, maxR = -Infinity, minC = Infinity, maxC = -Infinity;
+    for (const cell of grid.values()) {
+      if (cell.r < minR) minR = cell.r;
+      if (cell.r > maxR) maxR = cell.r;
+      if (cell.c < minC) minC = cell.c;
+      if (cell.c > maxC) maxC = cell.c;
+    }
+    const rows = maxR - minR + 1;
+    const cols = maxC - minC + 1;
+
+    const cellsList = [];
+    const cellMap = new Map();
+    for (const cell of grid.values()) {
+      const nr = cell.r - minR;
+      const nc = cell.c - minC;
+      const hasRuby = rng() < 0.16;
+      const cObj = {
+        r: nr, c: nc, ch: cell.ch,
+        revealed: false, revealAt: -9999,
+        ruby: hasRuby, flowerHue: Math.floor(rng() * 360),
+        cx: 0, cy: 0
+      };
+      cellsList.push(cObj);
+      cellMap.set(kOf(nr, nc), cObj);
+    }
+    // Tri pour affichage stable
+    cellsList.sort((a, b) => a.r - b.r || a.c - b.c);
+
+    for (const p of placed) {
+      p.r -= minR;
+      p.c -= minC;
+      p.cells = p.cells.map(pt => cellMap.get(kOf(pt.r - minR, pt.c - minC)));
+    }
+
+    // Mélange initial des lettres de la roue
+    const wheelLetters = rootWord.split('');
+    for (let i = wheelLetters.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [wheelLetters[i], wheelLetters[j]] = [wheelLetters[j], wheelLetters[i]];
+    }
+
+    // Ensemble des mots bonus valides pour cette roue
+    const placedSet = new Set(placed.map(p => p.word));
+    const validBonusSet = new Set(subWords.filter(w => !placedSet.has(w)));
+
+    return {
+      rootWord,
+      wheelLetters,
+      rows,
+      cols,
+      words: placed,
+      cells: cellsList,
+      validBonusSet
+    };
+  }
+  /* =====================================================================
+   * Utilitaires, Dates (Heure de Paris) & Horloge
+   * ===================================================================== */
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const easeOutBack = t => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+  const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+  const easeInOutQuad = t => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+  const fmtNum = n => Number(n || 0).toLocaleString('fr-FR');
+
+  function parisDate(d = new Date()) {
+    const parts = new Intl.DateTimeFormat('fr-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(d);
+    const get = t => parts.find(p => p.type === t).value;
+    return `${get('year')}-${get('month')}-${get('day')}`;
+  }
+  const todayKey = () => parisDate(new Date());
+  function shiftDay(key, delta) {
+    const [y, m, d] = key.split('-').map(Number);
+    return new Date(Date.UTC(y, m - 1, d + delta)).toISOString().slice(0, 10);
+  }
+
+  let now = 0;
+  const timers = [];
+  function after(ms, fn) { timers.push({ t: now + ms, fn }); }
+  function runTimers() {
+    const t = now;
+    const due = [];
+    for (let i = timers.length - 1; i >= 0; i--) {
+      if (timers[i].t <= t) { due.push(timers[i]); timers.splice(i, 1); }
+    }
+    due.sort((a, b) => a.t - b.t).forEach(x => x.fn());
+  }
+
+  /* =====================================================================
+   * Audio Synthétisé (Ambiance Jardin des Mots : Harpe, Piano doux & Carillons)
+   * ===================================================================== */
+  const Sfx = {
+    ctx: null, master: null, muted: false,
+    init() {
+      if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      this.ctx = new AC();
+      this.master = this.ctx.createGain();
+      this.master.gain.value = 0.5;
+      this.master.connect(this.ctx.destination);
+    },
+    ok() { return this.ctx && !this.muted && this.ctx.state !== 'closed'; },
+    tone(freq, dur, type = 'sine', gain = 0.18, when = 0, endFreq = null) {
+      if (!this.ok()) return;
+      const c = this.ctx, t = c.currentTime + when;
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, t);
+      if (endFreq) o.frequency.exponentialRampToValueAtTime(endFreq, t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain, t + 0.014);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(this.master);
+      o.start(t); o.stop(t + dur + 0.04);
+    },
+    // Note de harpe / piano qui monte à chaque lettre reliée dans le pot
+    selectLetter(idx) {
+      const scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99];
+      const f = scale[Math.min(idx, scale.length - 1)];
+      this.tone(f, 0.24, 'triangle', 0.18);
+      this.tone(f * 2, 0.12, 'sine', 0.05);
+    },
+    wordFound(combo = 1) {
+      const base = [523.25, 659.25, 783.99, 1046.5];
+      if (combo >= 3) base.push(1318.5);
+      if (combo >= 5) base.push(1567.98);
+      base.forEach((f, i) => this.tone(f, 0.45, 'triangle', 0.12, i * 0.045));
+    },
+    bonusWord() {
+      this.tone(587.33, 0.18, 'sine', 0.14, 0);
+      this.tone(880.00, 0.30, 'triangle', 0.15, 0.06);
+    },
+    alreadyFound() {
+      this.tone(440, 0.12, 'sine', 0.1, 0);
+      this.tone(440, 0.14, 'sine', 0.08, 0.1);
+    },
+    wrongWord() {
+      this.tone(210, 0.16, 'sawtooth', 0.08, 0, 155);
+    },
+    shuffle() {
+      [330, 392, 494, 587].forEach((f, i) => this.tone(f, 0.1, 'sine', 0.08, i * 0.035));
+    },
+    coin() {
+      this.tone(1318.5, 0.09, 'sine', 0.1, 0);
+      this.tone(1975.5, 0.22, 'triangle', 0.11, 0.05);
+    },
+    click() { this.tone(740, 0.05, 'sine', 0.08); },
+    win() {
+      [523.25, 659.25, 783.99, 1046.5, 1318.5, 1567.98].forEach((f, i) => {
+        this.tone(f, 0.55, 'triangle', 0.14, i * 0.085);
+        this.tone(f * 0.5, 0.6, 'sine', 0.07, i * 0.085);
+      });
+    }
+  };
+
+  /* =====================================================================
+   * Sauvegarde Locale & État de Partie
+   * ===================================================================== */
+  function defaultThemeProg() { return { unlocked: 1, best: {} }; }
+  function defaultSpecial() { return { best: 0, bestCombo: 0, plays: 0 }; }
+
+  function loadSave() {
+    let raw = null;
+    try { raw = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (_) {}
+    const s = raw && typeof raw === 'object' ? raw : {};
+    const progress = {};
+    for (const k of THEME_ORDER) {
+      const p = s.progress && s.progress[k];
+      progress[k] = {
+        unlocked: Math.max(1, Number(p && p.unlocked) || 1),
+        best: (p && typeof p.best === 'object' && p.best) || {}
+      };
+    }
+    const special = {};
+    for (const k of MODE_ORDER) {
+      const sp = s.special && s.special[k];
+      special[k] = {
+        best: Math.max(0, Number(sp && sp.best) || 0),
+        bestCombo: Math.max(0, Number(sp && sp.bestCombo) || 0),
+        plays: Math.max(0, Number(sp && sp.plays) || 0)
+      };
+    }
+    const daily = s.daily && typeof s.daily === 'object' ? s.daily : {};
+    return {
+      currentTheme: THEME_ORDER.includes(s.currentTheme) ? s.currentTheme : 'general',
+      coins: typeof s.coins === 'number' ? Math.max(0, Math.floor(s.coins)) : 320,
+      gems: typeof s.gems === 'number' ? Math.max(0, Math.floor(s.gems)) : 5,
+      giftDate: String(s.giftDate || ''),
+      muted: !!s.muted,
+      noTools: !!s.noTools,
+      lowFx: !!s.lowFx,
+      stats: {
+        wordsFound: Number(s.stats && s.stats.wordsFound) || 0,
+        bonusFound: Number(s.stats && s.stats.bonusFound) || 0,
+        noToolsWins: Number(s.stats && s.stats.noToolsWins) || 0,
+        maxCombo: Number(s.stats && s.stats.maxCombo) || 0
+      },
+      badges: (s.badges && typeof s.badges === 'object') ? s.badges : {},
+      progress,
+      special,
+      daily: {
+        days: (daily.days && typeof daily.days === 'object') ? daily.days : {}, // "YYYY-MM-DD": { score, combo, keys }
+        chests: (daily.chests && typeof daily.chests === 'object') ? daily.chests : {} // "YYYY-MM:0": true
+      },
+      profile: {
+        pseudo: String((s.profile && s.profile.pseudo) || ''),
+        playerId: String((s.profile && s.profile.playerId) || ''),
+        secret: String((s.profile && s.profile.secret) || ''),
+        later: !!(s.profile && s.profile.later),
+        hasPin: s.profile && typeof s.profile.hasPin === 'boolean' ? s.profile.hasPin : null,
+        pinPending: String((s.profile && s.profile.pinPending) || ''),
+        pinAsked: String((s.profile && s.profile.pinAsked) || '')
+      },
+      pending: Array.isArray(s.pending) ? s.pending : []
+    };
+  }
+
+  const save = loadSave();
+  function persist() {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (_) {}
+  }
+
+  const state = {
+    mode: 'levels',         // 'levels' | 'daily' | 'chrono' | 'endless'
+    theme: save.currentTheme,
+    level: 1,
+    dailyDate: todayKey(),
+    puzzle: null,           // résultat de generateCrossword
+    score: 0,
+    displayScore: 0,
+    combo: 0,
+    maxCombo: 0,
+    turns: 0,               // nombre de mots trouvés dans la partie
+    endlessGrids: 0,
+    timeLeft: 0,
+    toolsUsed: false,
+    cellPickMode: false,
+    over: false,
+    blooming: false,
+    bloomAt: 0,
+    homeOpen: true,
+    modalOpen: false,
+    bonusWords: [],         // mots bonus trouvés dans la grille actuelle
+    wheelAngles: [],        // angle de chaque lettre sur le pot
+    wheelPos: [],           // { x, y, ch, idx }
+    selectedIdx: [],        // indices des lettres en cours de glissement
+    pointerPos: null,       // { x, y } du doigt pendant le tracé
+    pillShakeAt: -9999,
+    lastSubmittedWord: '',
+    lastSubmittedStatus: '', // 'ok' | 'bonus' | 'already' | 'wrong'
+    lastSubmittedAt: -9999
+  };
+
+  const curTheme = () => THEMES[state.theme] || THEMES.general;
+  const prog = () => save.progress[state.theme];
+
+  /* =====================================================================
+   * Dimensions, Layout Responsive & Positions
+   * ===================================================================== */
+  const canvas = $('game');
+  const ctx = canvas.getContext('2d');
+  const fxCanvas = $('fx');
+  const fctx = fxCanvas.getContext('2d');
+
+  let W = 390, H = 844, DPR = 1;
+  const L = {
+    gridTop: 72, gridBottom: 420,
+    cellSize: 42, cellGap: 5,
+    potCX: 195, potCY: 640, potR: 118, letterR: 78, nodeR: 26,
+    pillY: 488
+  };
+
+  function layout() {
+    DPR = Math.min(window.devicePixelRatio || 1, save.lowFx ? 1.25 : 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    fxCanvas.width = Math.round(W * DPR);
+    fxCanvas.height = Math.round(H * DPR);
+
+    const safeTop = 64;
+    const safeBot = 18;
+    // Pot de fleurs en bas
+    const maxPotR = Math.min(W * 0.34, H * 0.185, 138);
+    L.potR = Math.max(84, maxPotR);
+    L.potCX = W / 2;
+    L.potCY = H - safeBot - L.potR - 8;
+    L.letterR = L.potR * 0.65;
+    L.nodeR = Math.max(22, L.potR * 0.24);
+    L.pillY = L.potCY - L.potR - 26;
+
+    // Zone de la grille de mots croisés en haut
+    L.gridTop = safeTop;
+    L.gridBottom = L.pillY - 28;
+    const availW = Math.min(W - 24, 520);
+    const availH = Math.max(150, L.gridBottom - L.gridTop);
+
+    if (state.puzzle) {
+      const { rows, cols, cells } = state.puzzle;
+      const gap = Math.max(3, Math.min(6, Math.floor(Math.min(availW / cols, availH / rows) * 0.1)));
+      const sizeW = (availW - gap * (cols - 1)) / cols;
+      const sizeH = (availH - gap * (rows - 1)) / rows;
+      L.cellSize = Math.floor(clamp(Math.min(sizeW, sizeH), 26, 54));
+      L.cellGap = gap;
+
+      const totalW = cols * L.cellSize + (cols - 1) * L.cellGap;
+      const totalH = rows * L.cellSize + (rows - 1) * L.cellGap;
+      const startX = (W - totalW) / 2 + L.cellSize / 2;
+      const startY = L.gridTop + (availH - totalH) / 2 + L.cellSize / 2;
+
+      for (const cell of cells) {
+        cell.cx = startX + cell.c * (L.cellSize + L.cellGap);
+        cell.cy = startY + cell.r * (L.cellSize + L.cellGap);
+      }
+    }
+    updateWheelPositions();
+  }
+
+  function updateWheelPositions() {
+    if (!state.puzzle) return;
+    const letters = state.puzzle.wheelLetters;
+    const n = letters.length;
+    if (state.wheelAngles.length !== n) {
+      state.wheelAngles = letters.map((_, i) => -Math.PI / 2 + (i * 2 * Math.PI) / n);
+    }
+    state.wheelPos = letters.map((ch, i) => {
+      const a = state.wheelAngles[i];
+      return {
+        idx: i,
+        ch,
+        x: L.potCX + Math.cos(a) * L.letterR,
+        y: L.potCY + Math.sin(a) * L.letterR
+      };
+    });
+  }
+
+  /* =====================================================================
+   * Effets Visuels : Lettres Volantes, Pièces, Particules & Bannières Florales
+   * ===================================================================== */
+  const flyers = [];    // lettres qui volent de la pilule vers la grille
+  const orbs = [];      // pièces, rubis ou étoiles qui volent vers le HUD
+  const particles = [];
+  const floats = [];
+  const banners = [];
+
+  function spawnParticles(x, y, color, count = 14, speed = 130) {
+    const n = save.lowFx ? Math.ceil(count * 0.45) : count;
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = (0.35 + Math.random() * 0.85) * speed;
+      particles.push({
+        x, y,
+        vx: Math.cos(a) * sp,
+        vy: Math.sin(a) * sp - 35,
+        size: 3 + Math.random() * 5,
+        color,
+        rot: Math.random() * Math.PI,
+        vrot: (Math.random() - 0.5) * 8,
+        life: 0.45 + Math.random() * 0.4,
+        max: 0.85
+      });
+    }
+  }
+
+  function addFloat(x, y, text, color = '#ffe066', size = 22) {
+    floats.push({ x, y, text, color, size, life: 1.05, max: 1.05 });
+  }
+
+  function addPraiseBanner(text, subText = '') {
+    banners.push({
+      text, subText,
+      t0: now, dur: 1550,
+      hue: Math.floor(Math.random() * 360)
+    });
+  }
+
+  function flyOrb(sx, sy, tx, ty, emoji, onArrive) {
+    orbs.push({
+      sx, sy, tx, ty, x: sx, y: sy,
+      cx: (sx + tx) / 2 + (Math.random() - 0.5) * 90,
+      cy: Math.min(sy, ty) - 60 - Math.random() * 40,
+      emoji,
+      t0: now, dur: 560,
+      onArrive
+    });
+  }
+
+  function updateFx(dt) {
+    for (let i = flyers.length - 1; i >= 0; i--) {
+      const f = flyers[i];
+      if (now < f.t0) continue;
+      const p = clamp((now - f.t0) / f.dur, 0, 1);
+      const e = easeInOutQuad(p);
+      f.x = (1 - e) * (1 - e) * f.sx + 2 * (1 - e) * e * f.cx + e * e * f.tx;
+      f.y = (1 - e) * (1 - e) * f.sy + 2 * (1 - e) * e * f.cy + e * e * f.ty;
+      if (p >= 1) {
+        if (f.onLand) f.onLand();
+        flyers.splice(i, 1);
+      }
+    }
+    for (let i = orbs.length - 1; i >= 0; i--) {
+      const o = orbs[i];
+      if (now < o.t0) continue;
+      const p = clamp((now - o.t0) / o.dur, 0, 1);
+      const e = easeInOutQuad(p);
+      o.x = (1 - e) * (1 - e) * o.sx + 2 * (1 - e) * e * o.cx + e * e * o.tx;
+      o.y = (1 - e) * (1 - e) * o.sy + 2 * (1 - e) * e * o.cy + e * e * o.ty;
+      if (p >= 1) {
+        if (o.onArrive) o.onArrive();
+        orbs.splice(i, 1);
+      }
+    }
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vy += 260 * dt;
+      p.rot += p.vrot * dt;
+      p.life -= dt;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+    for (let i = floats.length - 1; i >= 0; i--) {
+      const f = floats[i];
+      f.y -= 36 * dt;
+      f.life -= dt;
+      if (f.life <= 0) floats.splice(i, 1);
+    }
+  }
+
+  /* =====================================================================
+   * Lancement d'un Niveau / Mode & Logique des Mots
+   * ===================================================================== */
+  function updateHudTop() {
+    $('gemCount').textContent = fmtNum(save.gems);
+    $('coinCount').textContent = fmtNum(save.coins);
+    $('bonusBadge').textContent = state.bonusWords.length;
+    $('bonusTag').textContent = `${state.bonusWords.length % 5}/5`;
+    $('giftTag').textContent = save.giftDate === todayKey() ? 'Reçu ✓' : 'Cadeau !';
+
+    const t = curTheme();
+    if (state.mode === 'levels') {
+      $('hudTheme').textContent = `${t.icon} ${t.name}`;
+      $('hudTitle').textContent = `Niveau ${state.level} · ${fmtNum(state.score)} pts`;
+    } else if (state.mode === 'daily') {
+      $('hudTheme').textContent = '📅 Puzzle du Jour';
+      $('hudTitle').textContent = `${fmtDay(state.dailyDate)} · ${fmtNum(state.score)} pts`;
+    } else if (state.mode === 'chrono') {
+      const sec = Math.max(0, Math.ceil(state.timeLeft / 1000));
+      $('hudTheme').textContent = `⏱️ Chrono · ${sec}s`;
+      $('hudTitle').textContent = `${fmtNum(state.score)} pts · combo ×${state.combo}`;
+    } else {
+      $('hudTheme').textContent = `♾️ Jardin Infini (${t.short})`;
+      $('hudTitle').textContent = `Grille ${state.endlessGrids + 1} · ${fmtNum(state.score)} pts`;
+    }
+  }
+
+  function loadPuzzleForCurrentState(resetScore = true) {
+    let seedKey;
+    if (state.mode === 'levels') {
+      seedKey = `lvl:${state.theme}:${state.level}`;
+    } else if (state.mode === 'daily') {
+      seedKey = `daily:${state.dailyDate}`;
+    } else if (state.mode === 'chrono') {
+      seedKey = `chrono:${todayKey()}:${state.turns}:${Math.floor(Math.random() * 99999)}`;
+    } else {
+      seedKey = `endless:${state.theme}:${state.endlessGrids + 1}:${Date.now()}`;
+    }
+    state.puzzle = generateCrossword(seedKey, state.theme, state.level);
+    state.bonusWords = [];
+    state.selectedIdx = [];
+    state.pointerPos = null;
+    state.wheelAngles = [];
+    state.cellPickMode = false;
+    state.blooming = false;
+    $('hintBanner').classList.remove('show');
+    $('btnHintCell').classList.remove('active');
+
+    if (resetScore) {
+      state.score = 0;
+      state.displayScore = 0;
+      state.combo = 0;
+      state.maxCombo = 0;
+      state.turns = 0;
+      state.toolsUsed = false;
+      state.over = false;
+    }
+    layout();
+    updateHudTop();
+  }
+
+  function startLevel(lvl) {
+    state.mode = 'levels';
+    state.level = Math.max(1, lvl);
+    loadPuzzleForCurrentState(true);
+  }
+
+  function startDaily() {
+    state.mode = 'daily';
+    state.dailyDate = todayKey();
+    // Thème du jour qui tourne selon la date
+    const dHash = hashStr(state.dailyDate);
+    state.theme = THEME_ORDER[dHash % THEME_ORDER.length];
+    state.level = 5 + (dHash % 15);
+    loadPuzzleForCurrentState(true);
+  }
+
+  function startSpecialMode(modeKey) {
+    state.mode = modeKey;
+    state.theme = save.currentTheme;
+    state.level = 4;
+    state.endlessGrids = 0;
+    loadPuzzleForCurrentState(true);
+    if (modeKey === 'chrono') {
+      state.timeLeft = MODES.chrono.time * 1000;
+    }
+  }
+
+  function setCellPickMode(on) {
+    state.cellPickMode = on;
+    $('btnHintCell').classList.toggle('active', on);
+    $('hintBanner').classList.toggle('show', on);
+  }
+
+  /** Vérifie et valide le mot tracé sur la roue */
+  function submitWord(word) {
+    if (!word || word.length < 3 || state.over || state.blooming) return;
+    state.lastSubmittedWord = word;
+    state.lastSubmittedAt = now;
+
+    // 1. Est-ce un mot de la grille de mots croisés ?
+    const gridWord = state.puzzle.words.find(w => w.word === word);
+    if (gridWord) {
+      if (gridWord.found) {
+        Sfx.alreadyFound();
+        state.lastSubmittedStatus = 'already';
+        for (const cell of gridWord.cells) cell.revealAt = now;
+        return;
+      }
+      // Nouveau mot de la grille trouvé !
+      gridWord.found = true;
+      state.lastSubmittedStatus = 'ok';
+      state.turns++;
+      state.combo++;
+      if (state.combo > state.maxCombo) state.maxCombo = state.combo;
+      if (state.combo > save.stats.maxCombo) save.stats.maxCombo = state.combo;
+      save.stats.wordsFound++;
+
+      const mult = 1 + Math.floor(state.combo / 2);
+      const themeBonus = gridWord.isTheme ? 40 : 0;
+      const pts = (word.length * 30 + themeBonus) * mult;
+      state.score += pts;
+      if (state.mode === 'chrono') {
+        state.timeLeft = Math.min(MODES.chrono.time * 1000, state.timeLeft + 4000);
+      }
+
+      Sfx.wordFound(state.combo);
+      if (state.combo >= 2) {
+        const praise = PRAISE[Math.min(state.combo - 2, PRAISE.length - 1)];
+        addPraiseBanner(praise, gridWord.isTheme ? `${curTheme().icon} Mot du thème · ×${mult}` : `Combo ×${state.combo}`);
+      }
+
+      // Envoi des lettres volantes depuis la pilule vers chaque case du mot
+      gridWord.cells.forEach((cell, idx) => {
+        const sx = L.potCX + (idx - (word.length - 1) / 2) * 24;
+        const sy = L.pillY;
+        flyers.push({
+          ch: cell.ch,
+          sx, sy, x: sx, y: sy,
+          cx: (sx + cell.cx) / 2 + (Math.random() - 0.5) * 40,
+          cy: Math.min(sy, cell.cy) - 40,
+          tx: cell.cx, ty: cell.cy,
+          t0: now + idx * 55,
+          dur: 340,
+          onLand: () => {
+            const wasRevealed = cell.revealed;
+            cell.revealed = true;
+            cell.revealAt = now;
+            spawnParticles(cell.cx, cell.cy, '#ffe066', 10, 110);
+            if (!wasRevealed && cell.ruby) {
+              cell.ruby = false;
+              const gemEl = $('gemPill').getBoundingClientRect();
+              flyOrb(cell.cx, cell.cy, gemEl.left + 20, gemEl.top + 18, '💎', () => {
+                save.gems += 1;
+                Sfx.coin();
+                persist();
+                updateHudTop();
+              });
+            }
+            checkGridCompleted();
+          }
+        });
+      });
+
+      addFloat(L.potCX, L.pillY - 18, `+${pts}`, '#ffe066', 24);
+      checkBadges();
+      persist();
+      updateHudTop();
+      return;
+    }
+
+    // 2. Est-ce un Mot Bonus valide (dans le dictionnaire mais hors grille) ?
+    if (ALL_WORDS_SET.has(word) || state.puzzle.validBonusSet.has(word)) {
+      if (state.bonusWords.includes(word)) {
+        Sfx.alreadyFound();
+        state.lastSubmittedStatus = 'already';
+        addFloat(L.potCX, L.pillY - 16, 'Déjà dans les bonus', '#ffe9a8', 16);
+        return;
+      }
+      state.bonusWords.push(word);
+      save.stats.bonusFound++;
+      state.turns++;
+      state.score += word.length * 15;
+      state.lastSubmittedStatus = 'bonus';
+      Sfx.bonusWord();
+
+      const btnRect = $('btnBonusWords').getBoundingClientRect();
+      flyOrb(L.potCX, L.pillY, btnRect.left + 28, btnRect.top + 28, '⭐', () => {
+        spawnParticles(btnRect.left + 28, btnRect.top + 28, '#ffd84d', 12, 95);
+        if (state.bonusWords.length % 5 === 0) {
+          save.coins += 25;
+          Sfx.coin();
+          addFloat(btnRect.left + 40, btnRect.top, '+25 🪙 Bonus !', '#ffe066', 20);
+        }
+        persist();
+        updateHudTop();
+      });
+      addFloat(L.potCX, L.pillY - 18, `⭐ Mot bonus (+${word.length * 15})`, '#7bed9f', 18);
+      checkBadges();
+      persist();
+      updateHudTop();
+      return;
+    }
+
+    // 3. Mot inconnu
+    Sfx.wrongWord();
+    state.combo = 0;
+    state.pillShakeAt = now;
+    state.lastSubmittedStatus = 'wrong';
+    updateHudTop();
+  }
+
+  /** Vérifie si toutes les cases de la grille sont révélées */
+  function checkGridCompleted() {
+    if (!state.puzzle || state.over || state.blooming) return;
+    if (!state.puzzle.cells.every(c => c.revealed)) return;
+
+    // Toutes les lettres sont découvertes : on marque tous les mots comme trouvés
+    for (const w of state.puzzle.words) w.found = true;
+    state.blooming = true;
+    state.bloomAt = now;
+    Sfx.win();
+
+    // Chaque case fleurit avec des pétales !
+    state.puzzle.cells.forEach((cell, i) => {
+      after(i * 35, () => {
+        cell.revealAt = now;
+        spawnParticles(cell.cx, cell.cy, `hsl(${cell.flowerHue}, 90%, 68%)`, 8, 90);
+      });
+    });
+
+    // Pluie de pièces de fin de grille vers la réserve de pièces
+    const coinRect = $('coinPill').getBoundingClientRect();
+    const rewardCoins = state.mode === 'daily' ? 35 : 15 + state.puzzle.words.length * 2;
+    for (let i = 0; i < 5; i++) {
+      after(180 + i * 75, () => {
+        flyOrb(L.potCX + (i - 2) * 24, L.potCY, coinRect.left + 24, coinRect.top + 18, '🪙', () => {
+          if (i === 4) {
+            save.coins += rewardCoins;
+            Sfx.coin();
+            persist();
+            updateHudTop();
+          }
+        });
+      });
+    }
+
+    after(1250, () => onGridFinished(rewardCoins));
+  }
+
+  function starsEarned() {
+    if (state.maxCombo >= 6 || (!state.toolsUsed && state.maxCombo >= 4)) return 3;
+    if (state.maxCombo >= 3 || !state.toolsUsed) return 2;
+    return 1;
+  }
+
+  function onGridFinished(rewardCoins) {
+    if (state.mode === 'chrono') {
+      // En mode Chrono, on enchaîne immédiatement sur une nouvelle grille avec +10 secondes !
+      state.timeLeft = Math.min(MODES.chrono.time * 1000, state.timeLeft + 10000);
+      addPraiseBanner('GRILLE FLEURIE !', '+10 secondes ⏱️');
+      loadPuzzleForCurrentState(false);
+      return;
+    }
+
+    if (state.mode === 'endless') {
+      state.endlessGrids++;
+      const sp = save.special.endless;
+      if (state.score > sp.best) sp.best = state.score;
+      if (state.maxCombo > sp.bestCombo) sp.bestCombo = state.maxCombo;
+      sp.plays++;
+      persist();
+      sendEndlessScore();
+      addPraiseBanner(`GRILLE ${state.endlessGrids} TERMINÉE !`, `+${rewardCoins} 🪙`);
+      loadPuzzleForCurrentState(false);
+      return;
+    }
+
+    state.over = true;
+    const stars = starsEarned();
+    if (!state.toolsUsed) save.stats.noToolsWins++;
+
+    if (state.mode === 'daily') {
+      const day = state.dailyDate;
+      const prev = save.daily.days[day] || { score: 0, combo: 0, keys: 0 };
+      save.daily.days[day] = {
+        score: Math.max(prev.score, state.score),
+        combo: Math.max(prev.combo, state.maxCombo),
+        keys: Math.max(prev.keys, stars)
+      };
+      checkBadges();
+      persist();
+      scheduleCloudSave();
+
+      const tag = toolsTag();
+      const bkey = `${day}:${tag}`;
+      setWorld('🌍 Envoi de ton score du jour…');
+      submitScore({ board: 'daily', bkey, score: state.score, combo: state.maxCombo, turns: Math.max(1, state.turns) })
+        .then(r => setWorld(worldMessage(r, tag, false)));
+
+      const openDailyWin = () => showModal({
+        icon: '🌸',
+        title: 'Puzzle du Jour Réussi !',
+        text: `<b>${fmtNum(state.score)} points</b> · combo max ×${state.maxCombo}<br>` +
+          `Clés gagnées aujourd'hui : <b>${'🔑'.repeat(stars)}</b> (+${rewardCoins} 🪙)` +
+          worldLineHtml(),
+        buttons: [
+          { label: '📅 Voir le calendrier', primary: true, onClick: () => { hideModal(); homeTab = 'daily'; showHome(); } },
+          { label: '🏆 Top 10 du Jour', onClick: () => showBoardTop('daily', bkey, `Puzzle du ${fmtDay(day)}`, openDailyWin) },
+          { label: '↻ Rejouer', onClick: () => { hideModal(); startDaily(); } }
+        ]
+      });
+      openDailyWin();
+      return;
+    }
+
+    // Mode Niveaux par thème
+    const p = prog();
+    const prev = p.best[state.level] || { score: 0, combo: 0, stars: 0 };
+    p.best[state.level] = {
+      score: Math.max(prev.score, state.score),
+      combo: Math.max(prev.combo, state.maxCombo),
+      stars: Math.max(prev.stars || 0, stars)
+    };
+    if (state.level >= p.unlocked) p.unlocked = state.level + 1;
+    checkBadges();
+    persist();
+    scheduleCloudSave();
+
+    const tag = toolsTag();
+    const bkey = `${state.theme}:${state.level}:${tag}`;
+    setWorld('🌍 Envoi du score au classement…');
+    submitScore({ board: 'level', bkey, score: state.score, combo: state.maxCombo, turns: Math.max(1, state.turns) })
+      .then(r => setWorld(worldMessage(r, tag, true)));
+
+    const finishedLvl = state.level;
+    const tName = curTheme().name;
+    const openWinModal = () => showModal({
+      icon: '🌺',
+      title: `Niveau ${finishedLvl} Terminé !`,
+      text: `<b style="font-size:22px;color:#ffd84d">${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}</b><br>` +
+        `Thème <b>${esc(tName)}</b> · Mot-souche : <b>${state.puzzle.rootWord}</b><br>` +
+        `Score : <b>${fmtNum(state.score)} pts</b> · Combo max : <b>×${state.maxCombo}</b> · +${rewardCoins} 🪙` +
+        worldLineHtml(),
+      buttons: [
+        { label: `Niveau ${finishedLvl + 1} →`, primary: true, onClick: () => { hideModal(); startLevel(finishedLvl + 1); } },
+        { label: '🏆 Top 10 du niveau', onClick: () => showBoardTop('level', bkey, `Niveau ${finishedLvl} · ${tName}`, openWinModal) },
+        { label: '↻ Rejouer ce niveau', onClick: () => { hideModal(); startLevel(finishedLvl); } },
+        { label: '🗺️ Accueil & Thèmes', onClick: () => { hideModal(); showHome(); } }
+      ]
+    });
+    openWinModal();
+  }
+
+  function endChrono() {
+    if (state.over) return;
+    state.over = true;
+    const sp = save.special.chrono;
+    if (state.score > sp.best) sp.best = state.score;
+    if (state.maxCombo > sp.bestCombo) sp.bestCombo = state.maxCombo;
+    sp.plays++;
+    persist();
+    scheduleCloudSave();
+
+    const tag = toolsTag();
+    const bkey = `all:${tag}`;
+    setWorld('🌍 Envoi du score Chrono…');
+    if (state.turns > 0) {
+      submitScore({ board: 'chrono', bkey, score: state.score, combo: state.maxCombo, turns: state.turns })
+        .then(r => setWorld(worldMessage(r, tag, false)));
+    } else {
+      setWorld('Trouve au moins un mot pour entrer au classement.');
+    }
+
+    const openChronoEnd = () => showModal({
+      icon: '⏱️',
+      title: 'Temps écoulé !',
+      text: `Score : <b>${fmtNum(state.score)} pts</b> · Combo max : <b>×${state.maxCombo}</b><br>` +
+        `Mots trouvés : <b>${state.turns}</b> · Record : <b>${fmtNum(sp.best)} pts</b>` +
+        worldLineHtml(),
+      buttons: [
+        { label: '↻ Rejouer en Chrono', primary: true, onClick: () => { hideModal(); startSpecialMode('chrono'); } },
+        { label: '🏆 Top 10 Chrono', onClick: () => showBoardTop('chrono', bkey, 'Chrono 90s', openChronoEnd) },
+        { label: '🗺️ Accueil', onClick: () => { hideModal(); showHome(); } }
+      ]
+    });
+    openChronoEnd();
+  }
+
+  function sendEndlessScore() {
+    if (state.mode !== 'endless' || state.turns < 1 || state.score <= 0) return;
+    const tag = toolsTag();
+    submitScore({ board: 'endless', bkey: `all:${tag}`, score: state.score, combo: state.maxCombo, turns: state.turns });
+  }
+
+  /* =====================================================================
+   * Outils : Mélanger, Indices, Fusée & Bonus du Jour
+   * ===================================================================== */
+  function shuffleWheel() {
+    if (!state.puzzle || state.over || state.blooming) return;
+    Sfx.init(); Sfx.shuffle();
+    const arr = state.puzzle.wheelLetters;
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    updateWheelPositions();
+  }
+
+  function revealCellWithFx(cell) {
+    if (!cell || cell.revealed) return;
+    cell.revealed = true;
+    cell.revealAt = now;
+    spawnParticles(cell.cx, cell.cy, '#ffe066', 14, 120);
+    if (cell.ruby) {
+      cell.ruby = false;
+      save.gems += 1;
+    }
+    // Si tous les caractères d'un mot sont maintenant révélés, on le marque trouvé
+    for (const w of state.puzzle.words) {
+      if (!w.found && w.cells.every(c => c.revealed)) {
+        w.found = true;
+        state.turns++;
+        state.score += w.word.length * 20;
+      }
+    }
+    persist();
+    updateHudTop();
+    checkGridCompleted();
+  }
+
+  function notEnoughCoins() {
+    Sfx.wrongWord();
+    showModal({
+      icon: '🪙',
+      title: 'Pièces insuffisantes',
+      text: 'Trouve des <b>⭐ Mots Bonus</b> (5 mots bonus = +25 🪙), termine des niveaux ou ouvre ton <b>🎁 Bonus du Jour</b> pour gagner des pièces !',
+      buttons: [
+        { label: '🎁 Voir le Bonus du Jour', primary: true, onClick: () => { hideModal(); openDailyGiftModal(); } },
+        { label: 'Compris', onClick: () => hideModal() }
+      ]
+    });
+  }
+
+  function useHintOne() {
+    if (!state.puzzle || state.over || state.blooming) return;
+    Sfx.init();
+    const hidden = state.puzzle.cells.filter(c => !c.revealed);
+    if (!hidden.length) return;
+    if (save.coins < 40) { notEnoughCoins(); return; }
+    save.coins -= 40;
+    state.toolsUsed = true;
+    const target = hidden[Math.floor(Math.random() * hidden.length)];
+    Sfx.coin();
+    const btnRect = $('btnHintOne').getBoundingClientRect();
+    flyOrb(btnRect.left + 25, btnRect.top + 25, target.cx, target.cy, '💡', () => revealCellWithFx(target));
+    persist();
+    updateHudTop();
+  }
+
+  function useHintCellToggle() {
+    if (!state.puzzle || state.over || state.blooming) return;
+    Sfx.init(); Sfx.click();
+    if (state.cellPickMode) { setCellPickMode(false); return; }
+    if (save.coins < 80) { notEnoughCoins(); return; }
+    setCellPickMode(true);
+  }
+
+  function useHintMulti() {
+    if (!state.puzzle || state.over || state.blooming) return;
+    Sfx.init();
+    const hidden = state.puzzle.cells.filter(c => !c.revealed);
+    if (!hidden.length) return;
+    if (save.coins < 160) { notEnoughCoins(); return; }
+    save.coins -= 160;
+    state.toolsUsed = true;
+    Sfx.wordFound(3);
+    const btnRect = $('btnHintMulti').getBoundingClientRect();
+    const picks = hidden.sort(() => Math.random() - 0.5).slice(0, 3);
+    picks.forEach((target, i) => {
+      after(i * 110, () => {
+        flyOrb(btnRect.left + 25, btnRect.top + 25, target.cx, target.cy, '🚀', () => revealCellWithFx(target));
+      });
+    });
+    persist();
+    updateHudTop();
+  }
+
+  function openDailyGiftModal() {
+    Sfx.init(); Sfx.click();
+    const today = todayKey();
+    const claimed = save.giftDate === today;
+    showModal({
+      icon: '🎁',
+      title: 'BONUS DU JOUR',
+      text: claimed
+        ? 'Tu as déjà ouvert ton cadeau du jour ! Reviens demain pour un nouveau coffret garni de pièces et de rubis.'
+        : 'Ouvre ton coffret cadeau quotidien pour recevoir <b>+80 🪙 pièces d’or</b> et <b>+2 💎 rubis</b> !',
+      buttons: claimed
+        ? [{ label: 'Super', primary: true, onClick: () => hideModal() }]
+        : [{
+            label: '🎁 Ouvrir mon cadeau (+80 🪙 · +2 💎)', primary: true,
+            onClick: () => {
+              save.giftDate = today;
+              save.coins += 80;
+              save.gems += 2;
+              Sfx.win();
+              persist();
+              updateHudTop();
+              hideModal();
+              addPraiseBanner('CADEAU OUVERT !', '+80 🪙 et +2 💎');
+            }
+          }]
+    });
+  }
+
+  function showBonusWordsModal() {
+    Sfx.init(); Sfx.click();
+    const list = state.bonusWords;
+    const rem = 5 - (list.length % 5);
+    showModal({
+      icon: '⭐',
+      title: `Mots Bonus (${list.length})`,
+      text: `Encore <b>${rem} mot${rem > 1 ? 's' : ''} bonus</b> pour gagner <b>+25 🪙</b> !<br>` +
+        (list.length
+          ? `<div class="bonusWordsPill">${list.map(w => `<span class="bwTag">${esc(w)}</span>`).join('')}</div>`
+          : '<small>Forme des mots français valides qui ne sont pas dans la grille pour remplir l’étoile bonus.</small>'),
+      buttons: [{ label: 'Continuer', primary: true, onClick: () => hideModal() }]
+    });
+  }
+
+  function checkBadges() {
+    const b = save.badges;
+    if (save.stats.wordsFound >= 1) b.first_grid = true;
+    if (save.stats.wordsFound >= 50) b.words_50 = true;
+    if (save.stats.wordsFound >= 250) b.words_250 = true;
+    if (save.stats.bonusFound >= 20) b.bonus_20 = true;
+    if (save.stats.maxCombo >= 7) b.combo_7 = true;
+    if (save.stats.noToolsWins >= 10) b.no_tools_10 = true;
+    if (THEME_ORDER.every(k => Object.keys(save.progress[k].best).length >= 1)) b.all_themes = true;
+    const totalKeys = Object.values(save.daily.days).reduce((acc, d) => acc + (d.keys || 0), 0);
+    if (totalKeys >= 9) b.daily_3 = true;
+  }
+  /* =====================================================================
+   * Contrôles Tactiles, Souris (Pointer Events) & Clavier
+   * ===================================================================== */
+  let activePointerId = null;
+
+  function pointerToCanvas(e) {
+    const r = canvas.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+
+  function hitWheelNode(x, y, radiusFactor = 1.08) {
+    const hitR = L.nodeR * radiusFactor;
+    for (const node of state.wheelPos) {
+      if (Math.hypot(x - node.x, y - node.y) <= hitR) return node.idx;
+    }
+    return -1;
+  }
+
+  function hitGridCell(x, y) {
+    if (!state.puzzle) return null;
+    const half = L.cellSize * 0.52;
+    for (const cell of state.puzzle.cells) {
+      if (Math.abs(x - cell.cx) <= half && Math.abs(y - cell.cy) <= half) return cell;
+    }
+    return null;
+  }
+
+  canvas.addEventListener('pointerdown', e => {
+    if (e.button !== 0 || state.homeOpen || state.modalOpen || state.over || state.blooming) return;
+    Sfx.init();
+    const pt = pointerToCanvas(e);
+
+    // Mode « Case au choix (80 🪙) »
+    if (state.cellPickMode) {
+      const cell = hitGridCell(pt.x, pt.y);
+      if (cell && !cell.revealed) {
+        if (save.coins >= 80) {
+          save.coins -= 80;
+          state.toolsUsed = true;
+          setCellPickMode(false);
+          Sfx.coin();
+          revealCellWithFx(cell);
+        } else {
+          setCellPickMode(false);
+          notEnoughCoins();
+        }
+      } else {
+        setCellPickMode(false);
+      }
+      return;
+    }
+
+    const idx = hitWheelNode(pt.x, pt.y, 1.2);
+    if (idx >= 0) {
+      activePointerId = e.pointerId;
+      try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+      state.selectedIdx = [idx];
+      state.pointerPos = pt;
+      Sfx.selectLetter(0);
+    }
+  });
+
+  canvas.addEventListener('pointermove', e => {
+    if (activePointerId !== e.pointerId || !state.selectedIdx.length) return;
+    const pt = pointerToCanvas(e);
+    state.pointerPos = pt;
+    const idx = hitWheelNode(pt.x, pt.y, 0.96);
+    if (idx < 0) return;
+
+    const sel = state.selectedIdx;
+    // Revenir sur l'avant-dernière lettre annule la dernière lettre sélectionnée
+    if (sel.length >= 2 && sel[sel.length - 2] === idx) {
+      sel.pop();
+      Sfx.selectLetter(sel.length - 1);
+      return;
+    }
+    if (!sel.includes(idx)) {
+      sel.push(idx);
+      Sfx.selectLetter(sel.length - 1);
+    }
+  });
+
+  function finishSwipe(e) {
+    if (activePointerId !== null && e && e.pointerId !== undefined && e.pointerId !== activePointerId) return;
+    activePointerId = null;
+    if (!state.selectedIdx.length) return;
+    const word = state.selectedIdx.map(i => state.puzzle.wheelLetters[i]).join('');
+    state.selectedIdx = [];
+    state.pointerPos = null;
+    if (word.length >= 2) submitWord(word);
+  }
+
+  canvas.addEventListener('pointerup', finishSwipe);
+  canvas.addEventListener('pointercancel', finishSwipe);
+  canvas.addEventListener('lostpointercapture', finishSwipe);
+
+  // Support clavier complet sur PC (lettres, Backspace, Entrée, Espace pour mélanger)
+  window.addEventListener('keydown', e => {
+    if (state.homeOpen || state.modalOpen || state.over || state.blooming || !state.puzzle) return;
+    if (e.key === ' ') {
+      e.preventDefault();
+      shuffleWheel();
+      return;
+    }
+    if (e.key === 'Backspace') {
+      if (state.selectedIdx.length) {
+        state.selectedIdx.pop();
+        Sfx.init(); Sfx.selectLetter(Math.max(0, state.selectedIdx.length - 1));
+      }
+      return;
+    }
+    if (e.key === 'Enter') {
+      if (state.selectedIdx.length >= 2) {
+        const word = state.selectedIdx.map(i => state.puzzle.wheelLetters[i]).join('');
+        state.selectedIdx = [];
+        submitWord(word);
+      }
+      return;
+    }
+    if (e.key === 'Escape') {
+      state.selectedIdx = [];
+      setCellPickMode(false);
+      return;
+    }
+    const ch = normWord(e.key);
+    if (ch.length === 1) {
+      const letters = state.puzzle.wheelLetters;
+      const idx = letters.findIndex((l, i) => l === ch && !state.selectedIdx.includes(i));
+      if (idx >= 0) {
+        Sfx.init();
+        state.selectedIdx.push(idx);
+        Sfx.selectLetter(state.selectedIdx.length - 1);
+      }
+    }
+  });
+
+  /* =====================================================================
+   * Rendu Graphique Studio Moli (Pelouse, Dalles, Grille 3D, Pot & Fleurs)
+   * ===================================================================== */
+  function roundRect(c, x, y, w, h, r) {
+    const rad = Math.min(r, w / 2, h / 2);
+    c.beginPath();
+    c.moveTo(x + rad, y);
+    c.arcTo(x + w, y, x + w, y + h, rad);
+    c.arcTo(x + w, y + h, x, y + h, rad);
+    c.arcTo(x, y + h, x, y, rad);
+    c.arcTo(x, y, x + w, y, rad);
+    c.closePath();
+  }
+
+  // Dessine un trèfle à 4 feuilles / fleur sous une lettre sélectionnée dans le pot
+  function drawClover(c, x, y, r, gold = false) {
+    c.save();
+    c.translate(x, y);
+    const leafCol = gold ? '#f6ad1b' : '#29a329';
+    const leafLight = gold ? '#ffe373' : '#5cd65c';
+    const leafEdge = gold ? '#9c5700' : '#145214';
+    for (let i = 0; i < 4; i++) {
+      c.save();
+      c.rotate((i * Math.PI) / 2 + Math.PI / 4);
+      c.beginPath();
+      c.arc(0, -r * 0.56, r * 0.46, 0, Math.PI * 2);
+      c.fillStyle = leafCol;
+      c.fill();
+      c.lineWidth = 2;
+      c.strokeStyle = leafEdge;
+      c.stroke();
+      c.beginPath();
+      c.arc(-r * 0.1, -r * 0.62, r * 0.2, 0, Math.PI * 2);
+      c.fillStyle = leafLight;
+      c.fill();
+      c.restore();
+    }
+    c.restore();
+  }
+
+  // Dessine une fleur 3D éclose sur une case ou une bannière
+  function drawFlower(c, x, y, r, hue, rot = 0) {
+    c.save();
+    c.translate(x, y);
+    c.rotate(rot);
+    const petals = 5;
+    for (let i = 0; i < petals; i++) {
+      c.save();
+      c.rotate((i * Math.PI * 2) / petals);
+      c.beginPath();
+      c.ellipse(0, -r * 0.52, r * 0.36, r * 0.50, 0, 0, Math.PI * 2);
+      const g = c.createRadialGradient(0, -r * 0.3, 1, 0, -r * 0.55, r * 0.55);
+      g.addColorStop(0, '#ffffff');
+      g.addColorStop(0.4, `hsl(${hue}, 92%, 76%)`);
+      g.addColorStop(1, `hsl(${hue}, 82%, 56%)`);
+      c.fillStyle = g;
+      c.fill();
+      c.lineWidth = 1.2;
+      c.strokeStyle = `hsl(${hue}, 75%, 38%)`;
+      c.stroke();
+      c.restore();
+    }
+    c.beginPath();
+    c.arc(0, 0, r * 0.26, 0, Math.PI * 2);
+    c.fillStyle = '#ffcc29';
+    c.fill();
+    c.lineWidth = 1.2;
+    c.strokeStyle = '#b87700';
+    c.stroke();
+    c.restore();
+  }
+
+  // Dessine un rubis rose facetté dans une case
+  function drawRuby(c, x, y, r) {
+    c.save();
+    c.translate(x, y);
+    c.beginPath();
+    c.moveTo(-r * 0.55, -r * 0.45);
+    c.lineTo(r * 0.55, -r * 0.45);
+    c.lineTo(r * 0.85, -r * 0.08);
+    c.lineTo(0, r * 0.78);
+    c.lineTo(-r * 0.85, -r * 0.08);
+    c.closePath();
+    const g = c.createLinearGradient(-r, -r, r, r);
+    g.addColorStop(0, '#ff9ebb');
+    g.addColorStop(0.5, '#ff3877');
+    g.addColorStop(1, '#b50b46');
+    c.fillStyle = g;
+    c.fill();
+    c.lineWidth = 1.5;
+    c.strokeStyle = '#ffd6e4';
+    c.stroke();
+    // Reflet supérieur
+    c.beginPath();
+    c.moveTo(-r * 0.42, -r * 0.32);
+    c.lineTo(r * 0.42, -r * 0.32);
+    c.lineTo(0, r * 0.12);
+    c.closePath();
+    c.fillStyle = 'rgba(255, 255, 255, 0.45)';
+    c.fill();
+    c.restore();
+  }
+
+  const fract = x => x - Math.floor(x);
+  const hashNoise = i => fract(Math.sin(i * 127.1 + 311.7) * 43758.5453);
+
+  function drawGardenBackground(c) {
+    const t = curTheme();
+    // 1. Pelouse verdoyante ensoleillée
+    const g = c.createRadialGradient(W * 0.5, H * 0.28, 10, W * 0.5, H * 0.4, Math.max(W, H) * 0.88);
+    g.addColorStop(0, t.grassA);
+    g.addColorStop(1, t.grassB);
+    c.fillStyle = g;
+    c.fillRect(0, 0, W, H);
+
+    // Texture de brins d'herbe subtils et petites fleurs de pelouse
+    const bladeCount = save.lowFx ? 28 : 65;
+    c.save();
+    for (let i = 0; i < bladeCount; i++) {
+      const bx = hashNoise(i * 3 + 1) * W;
+      const by = hashNoise(i * 3 + 2) * (L.pillY + 20);
+      c.fillStyle = i % 2 === 0 ? 'rgba(190, 255, 130, 0.09)' : 'rgba(10, 35, 8, 0.12)';
+      c.beginPath();
+      c.ellipse(bx, by, 14 + (i % 9), 4, (i % 5) * 0.3, 0, Math.PI * 2);
+      c.fill();
+    }
+    c.restore();
+
+    // 2. Dalles de pierre rustiques et patio d'azulejos sous le pot de fleurs
+    const patioTop = L.pillY - 8;
+    c.save();
+    // Rangée de pierres de jardin
+    const stoneCount = 5;
+    const stoneW = Math.min(82, (W - 30) / stoneCount);
+    for (let i = 0; i < stoneCount; i++) {
+      const sx = (W - stoneCount * stoneW) / 2 + i * stoneW + 4;
+      const sy = patioTop - 16 + (i % 2) * 5;
+      roundRect(c, sx, sy, stoneW - 8, 36, 12);
+      c.fillStyle = 'rgba(210, 198, 174, 0.45)';
+      c.fill();
+      c.strokeStyle = 'rgba(90, 78, 60, 0.35)';
+      c.lineWidth = 1.5;
+      c.stroke();
+    }
+
+    // Patio d'azulejos bleus et blancs en bas de l'écran
+    const patioG = c.createLinearGradient(0, patioTop + 14, 0, H);
+    patioG.addColorStop(0, 'rgba(225, 234, 245, 0.88)');
+    patioG.addColorStop(1, 'rgba(175, 198, 226, 0.94)');
+    c.fillStyle = patioG;
+    roundRect(c, -10, patioTop + 14, W + 20, H - patioTop, 26);
+    c.fill();
+    c.lineWidth = 3;
+    c.strokeStyle = 'rgba(95, 130, 175, 0.55)';
+    c.stroke();
+
+    // Carreaux d'azulejos décoratifs
+    const tileS = 48;
+    c.strokeStyle = 'rgba(35, 90, 165, 0.18)';
+    c.lineWidth = 1.2;
+    for (let x = 0; x < W; x += tileS) {
+      for (let y = patioTop + 18; y < H; y += tileS) {
+        c.strokeRect(x, y, tileS, tileS);
+        c.beginPath();
+        c.arc(x + tileS / 2, y + tileS / 2, tileS * 0.24, 0, Math.PI * 2);
+        c.stroke();
+      }
+    }
+    c.restore();
+
+    // Feuillages décoratifs dans les coins supérieurs
+    c.save();
+    c.fillStyle = 'rgba(72, 148, 38, 0.55)';
+    for (const [cx, cy, ang] of [[15, 22, 0.4], [W - 18, 26, -0.5], [W - 10, 75, -0.9], [14, L.potCY + 30, 0.6]]) {
+      c.save();
+      c.translate(cx, cy);
+      c.rotate(ang);
+      c.beginPath();
+      c.ellipse(0, 0, 38, 20, 0, 0, Math.PI * 2);
+      c.fill();
+      c.restore();
+    }
+    c.restore();
+  }
+
+  function drawCrosswordGrid(c) {
+    if (!state.puzzle) return;
+    const t = curTheme();
+    const s = L.cellSize;
+    const r = Math.max(6, s * 0.2);
+    const pulse = 0.5 + 0.5 * Math.sin(now / 150);
+
+    for (const cell of state.puzzle.cells) {
+      const x = cell.cx - s / 2;
+      const y = cell.cy - s / 2;
+      const popElapsed = (now - cell.revealAt) / 280;
+      const scale = popElapsed >= 0 && popElapsed < 1 ? 1 + 0.22 * Math.sin(popElapsed * Math.PI) : 1;
+
+      c.save();
+      c.translate(cell.cx, cell.cy);
+      if (scale !== 1) c.scale(scale, scale);
+
+      // Ombre portée 3D sous la tuile
+      roundRect(c, -s / 2, -s / 2 + 3.5, s, s, r);
+      c.fillStyle = cell.revealed ? t.tileEdge : 'rgba(40, 32, 16, 0.42)';
+      c.fill();
+
+      // Corps de la tuile
+      roundRect(c, -s / 2, -s / 2, s, s, r);
+      if (cell.revealed) {
+        const tg = c.createLinearGradient(0, -s / 2, 0, s / 2);
+        tg.addColorStop(0, t.tileTop);
+        tg.addColorStop(1, t.tileBot);
+        c.fillStyle = tg;
+        c.fill();
+        c.lineWidth = 2;
+        c.strokeStyle = 'rgba(255, 255, 255, 0.72)';
+        c.stroke();
+
+        // Lettre blanche en relief
+        c.font = `900 ${Math.round(s * 0.6)}px ${FONT}`;
+        c.textAlign = 'center';
+        c.textBaseline = 'middle';
+        c.fillStyle = 'rgba(0, 0, 0, 0.32)';
+        c.fillText(cell.ch, 0, 2);
+        c.fillStyle = '#ffffff';
+        c.fillText(cell.ch, 0, 0);
+
+        // Si le niveau est terminé, une fleur éclot sur la case !
+        if (state.blooming) {
+          const bt = clamp((now - cell.revealAt) / 360, 0, 1);
+          const sc = easeOutBack(bt);
+          c.save();
+          c.scale(sc, sc);
+          drawFlower(c, s * 0.28, -s * 0.28, s * 0.34, cell.flowerHue, now / 900);
+          c.restore();
+        }
+      } else {
+        // Tuile beige/crème non révélée
+        const ug = c.createLinearGradient(0, -s / 2, 0, s / 2);
+        ug.addColorStop(0, '#fffdf7');
+        ug.addColorStop(1, '#e6dcc5');
+        c.fillStyle = ug;
+        c.fill();
+        c.lineWidth = state.cellPickMode ? 2.5 : 1.5;
+        c.strokeStyle = state.cellPickMode ? `rgba(255, 216, 77, ${0.55 + 0.45 * pulse})` : '#ffffff';
+        c.stroke();
+
+        if (cell.ruby) {
+          drawRuby(c, 0, 0, s * 0.32);
+        }
+      }
+      c.restore();
+    }
+  }
+
+  function drawFlowerPotAndWheel(c) {
+    if (!state.puzzle) return;
+    const t = curTheme();
+    const cx = L.potCX, cy = L.potCY, R = L.potR;
+
+    c.save();
+    // 1. Ombre portée du pot sur le patio
+    c.beginPath();
+    c.ellipse(cx, cy + 12, R * 1.04, R * 1.02, 0, 0, Math.PI * 2);
+    c.fillStyle = 'rgba(15, 22, 34, 0.42)';
+    c.fill();
+
+    // 2. Rebord extérieur en terre cuite / céramique 3D
+    c.beginPath();
+    c.arc(cx, cy, R, 0, Math.PI * 2);
+    const rimG = c.createRadialGradient(cx - R * 0.28, cy - R * 0.28, R * 0.5, cx, cy, R);
+    rimG.addColorStop(0, t.potRim);
+    rimG.addColorStop(0.75, t.potTop);
+    rimG.addColorStop(1, t.potDark);
+    c.fillStyle = rimG;
+    c.fill();
+    c.lineWidth = 3.5;
+    c.strokeStyle = 'rgba(255, 235, 205, 0.42)';
+    c.stroke();
+
+    // Anneau intermédiaire du pot
+    c.beginPath();
+    c.arc(cx, cy, R * 0.89, 0, Math.PI * 2);
+    c.strokeStyle = 'rgba(60, 22, 5, 0.55)';
+    c.lineWidth = 4;
+    c.stroke();
+
+    // 3. Terreau sombre fertile à l'intérieur du pot
+    const soilR = R * 0.87;
+    c.beginPath();
+    c.arc(cx, cy, soilR, 0, Math.PI * 2);
+    const soilG = c.createRadialGradient(cx, cy, 4, cx, cy, soilR);
+    soilG.addColorStop(0, '#4f3018');
+    soilG.addColorStop(0.7, '#38200e');
+    soilG.addColorStop(1, '#211106');
+    c.fillStyle = soilG;
+    c.fill();
+
+    // Petits grains de terreau
+    for (let i = 0; i < 22; i++) {
+      const a = hashNoise(i * 7 + 1) * Math.PI * 2;
+      const d = hashNoise(i * 7 + 3) * soilR * 0.85;
+      c.fillStyle = i % 2 === 0 ? 'rgba(110, 72, 40, 0.35)' : 'rgba(20, 10, 4, 0.4)';
+      c.beginPath();
+      c.arc(cx + Math.cos(a) * d, cy + Math.sin(a) * d, 2 + (i % 3), 0, Math.PI * 2);
+      c.fill();
+    }
+
+    // 4. Trèfles / Fleurs sous les lettres sélectionnées
+    const goldMode = state.selectedIdx.length >= 5;
+    for (const idx of state.selectedIdx) {
+      const node = state.wheelPos[idx];
+      if (node) drawClover(c, node.x, node.y, L.nodeR * 1.15, goldMode);
+    }
+
+    // 5. Ligne lumineuse qui relie les lettres sélectionnées au doigt
+    if (state.selectedIdx.length > 0) {
+      c.save();
+      c.beginPath();
+      state.selectedIdx.forEach((idx, k) => {
+        const node = state.wheelPos[idx];
+        if (!node) return;
+        if (k === 0) c.moveTo(node.x, node.y);
+        else c.lineTo(node.x, node.y);
+      });
+      if (state.pointerPos) {
+        c.lineTo(state.pointerPos.x, state.pointerPos.y);
+      }
+      c.lineCap = 'round';
+      c.lineJoin = 'round';
+      c.lineWidth = 7;
+      c.strokeStyle = goldMode ? '#ffd84d' : '#7bed9f';
+      c.shadowColor = goldMode ? '#f59e0b' : '#2ed573';
+      c.shadowBlur = 10;
+      c.stroke();
+      c.restore();
+    }
+
+    // 6. Lettres du pot en 3D
+    const fontSize = Math.round(L.nodeR * 1.38);
+    c.font = `900 ${fontSize}px ${FONT}`;
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    for (const node of state.wheelPos) {
+      const selected = state.selectedIdx.includes(node.idx);
+      c.save();
+      c.translate(node.x, node.y);
+      if (selected) c.scale(1.12, 1.12);
+      c.fillStyle = 'rgba(0, 0, 0, 0.58)';
+      c.fillText(node.ch, 0, 3);
+      c.fillStyle = selected ? '#ffffff' : '#f7f1e3';
+      c.fillText(node.ch, 0, 0);
+      c.restore();
+    }
+    c.restore();
+
+    // 7. Pilule du mot en cours juste au-dessus du pot
+    const activeWord = state.selectedIdx.map(i => state.puzzle.wheelLetters[i]).join('');
+    const recentElapsed = now - state.lastSubmittedAt;
+    const showRecent = !activeWord && recentElapsed < 480 && state.lastSubmittedWord;
+    const textToShow = activeWord || (showRecent ? state.lastSubmittedWord : '');
+
+    if (textToShow) {
+      const shakeT = (now - state.pillShakeAt) / 320;
+      const shakeX = shakeT >= 0 && shakeT < 1 ? Math.sin(shakeT * Math.PI * 5) * 9 * (1 - shakeT) : 0;
+
+      c.save();
+      c.font = `900 22px ${FONT}`;
+      const tw = Math.max(76, c.measureText(textToShow).width + 38);
+      const th = 42;
+      const px = cx - tw / 2 + shakeX;
+      const py = L.pillY - th / 2;
+
+      let bgTop = '#29a329', bgBot = '#196619', borderCol = '#a3f79e';
+      if (!activeWord) {
+        if (state.lastSubmittedStatus === 'wrong') { bgTop = '#e03131'; bgBot = '#961717'; borderCol = '#ffa8a8'; }
+        else if (state.lastSubmittedStatus === 'already') { bgTop = '#e67700'; bgBot = '#9c4a00'; borderCol = '#ffe066'; }
+        else if (state.lastSubmittedStatus === 'bonus') { bgTop = '#eab308'; bgBot = '#a16207'; borderCol = '#fef08a'; }
+      } else if (goldMode) {
+        bgTop = '#f59e0b'; bgBot = '#b45309'; borderCol = '#fde68a';
+      }
+
+      roundRect(c, px, py, tw, th, 21);
+      const pg = c.createLinearGradient(0, py, 0, py + th);
+      pg.addColorStop(0, bgTop);
+      pg.addColorStop(1, bgBot);
+      c.fillStyle = pg;
+      c.fill();
+      c.lineWidth = 2.5;
+      c.strokeStyle = borderCol;
+      c.stroke();
+
+      c.fillStyle = '#ffffff';
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.fillText(textToShow, cx + shakeX, L.pillY + 1);
+      c.restore();
+    }
+  }
+
+  function drawOverlayFx(c) {
+    c.setTransform(DPR, 0, 0, DPR, 0, 0);
+    c.clearRect(0, 0, W, H);
+
+    // 1. Lettres en vol vers les cases de la grille
+    for (const f of flyers) {
+      if (now < f.t0) continue;
+      const s = L.cellSize * 0.92;
+      c.save();
+      c.translate(f.x, f.y);
+      roundRect(c, -s / 2, -s / 2, s, s, 8);
+      c.fillStyle = '#38a3ff';
+      c.fill();
+      c.lineWidth = 2;
+      c.strokeStyle = '#ffffff';
+      c.stroke();
+      c.font = `900 ${Math.round(s * 0.6)}px ${FONT}`;
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.fillStyle = '#ffffff';
+      c.fillText(f.ch, 0, 0);
+      c.restore();
+    }
+
+    // 2. Orbes (pièces, rubis, étoiles) en vol
+    c.save();
+    c.font = `24px ${FONT}`;
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    for (const o of orbs) {
+      if (now < o.t0) continue;
+      c.fillText(o.emoji, o.x, o.y);
+    }
+    c.restore();
+
+    // 3. Particules
+    for (const p of particles) {
+      c.save();
+      c.globalAlpha = clamp(p.life / p.max, 0, 1);
+      c.translate(p.x, p.y);
+      c.rotate(p.rot);
+      c.fillStyle = p.color;
+      c.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+      c.restore();
+    }
+
+    // 4. Textes flottants (+points, bonus)
+    for (const f of floats) {
+      const t = 1 - f.life / f.max;
+      const sc = t < 0.2 ? easeOutBack(t / 0.2) : 1;
+      c.save();
+      c.globalAlpha = clamp(f.life / 0.35, 0, 1);
+      c.translate(f.x, f.y);
+      c.scale(sc, sc);
+      c.font = `900 ${f.size}px ${FONT}`;
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.lineWidth = 4;
+      c.strokeStyle = 'rgba(20, 12, 4, 0.85)';
+      c.strokeText(f.text, 0, 0);
+      c.fillStyle = f.color;
+      c.fillText(f.text, 0, 0);
+      c.restore();
+    }
+
+    // 5. Bannières Florales Studio Moli (SUBLIME ! / MAGNIFIQUE !)
+    for (let i = banners.length - 1; i >= 0; i--) {
+      const b = banners[i];
+      const t = (now - b.t0) / b.dur;
+      if (t >= 1) { banners.splice(i, 1); continue; }
+      const sc = t < 0.18 ? easeOutBack(t / 0.18) : 1;
+      const alpha = t > 0.76 ? 1 - (t - 0.76) / 0.24 : 1;
+      const by = L.gridTop + (L.gridBottom - L.gridTop) * 0.48;
+
+      c.save();
+      c.globalAlpha = alpha;
+      c.translate(W / 2, by);
+      c.scale(sc, sc);
+
+      const bw = Math.min(310, W - 44);
+      const bh = 52;
+      // Fleurs tropicales autour du ruban
+      drawFlower(c, -bw / 2 + 10, -14, 24, b.hue, t * 2);
+      drawFlower(c, bw / 2 - 10, -12, 26, (b.hue + 60) % 360, -t * 2);
+      drawFlower(c, -bw / 2 + 26, 18, 18, (b.hue + 140) % 360, t);
+      drawFlower(c, bw / 2 - 24, 16, 20, (b.hue + 220) % 360, -t);
+
+      // Ruban bombé
+      roundRect(c, -bw / 2, -bh / 2, bw, bh, 26);
+      const rg = c.createLinearGradient(0, -bh / 2, 0, bh / 2);
+      rg.addColorStop(0, `hsl(${b.hue}, 85%, 58%)`);
+      rg.addColorStop(1, `hsl(${b.hue}, 88%, 38%)`);
+      c.fillStyle = rg;
+      c.fill();
+      c.lineWidth = 3;
+      c.strokeStyle = '#fff6d6';
+      c.stroke();
+
+      c.font = `900 24px ${FONT}`;
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      c.fillText(b.text, 0, b.subText ? -5 : 2);
+      c.fillStyle = '#ffffff';
+      c.fillText(b.text, 0, b.subText ? -7 : 0);
+
+      if (b.subText) {
+        c.font = `800 12px ${FONT}`;
+        c.fillStyle = '#ffe89e';
+        c.fillText(b.subText, 0, 14);
+      }
+      c.restore();
+    }
+  }
+  /* =====================================================================
+   * Modales, Accueil, Calendrier Mensuel & Navigation
+   * ===================================================================== */
+  function showModal({ icon = '🌻', title = '', text = '', buttons = [] }) {
+    $('mIcon').textContent = icon;
+    $('mTitle').textContent = title;
+    $('mText').innerHTML = text;
+    const box = $('mBtns');
+    box.innerHTML = '';
+    for (const b of buttons) {
+      const btn = document.createElement('button');
+      btn.className = 'mBtn' + (b.primary ? ' primary' : '');
+      btn.textContent = b.label;
+      btn.addEventListener('click', () => {
+        Sfx.init(); Sfx.click();
+        if (b.onClick) b.onClick();
+      });
+      box.appendChild(btn);
+    }
+    $('modal').classList.add('show');
+    state.modalOpen = true;
+  }
+
+  function hideModal() {
+    $('modal').classList.remove('show');
+    state.modalOpen = false;
+  }
+
+  function confirmBox(title, html, okLabel, onOk, danger = false) {
+    const ok = { label: okLabel, primary: !danger, onClick: () => { hideModal(); onOk(); } };
+    const cancel = { label: 'Annuler', primary: danger, onClick: () => hideModal() };
+    showModal({ icon: '⚠️', title, text: html, buttons: danger ? [cancel, ok] : [ok, cancel] });
+  }
+
+  function renderThemeBar() {
+    const bar = $('themeBar');
+    bar.innerHTML = '';
+    for (const k of THEME_ORDER) {
+      const t = THEMES[k];
+      const u = save.progress[k].unlocked;
+      const btn = document.createElement('button');
+      btn.className = 'themeBtn' + (k === state.theme ? ' active' : '');
+      btn.dataset.theme = k;
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', String(k === state.theme));
+      btn.innerHTML = `${t.short}<span class="lv">niv. ${u}</span>`;
+      bar.appendChild(btn);
+    }
+    $('themeDesc').textContent = curTheme().desc;
+  }
+
+  $('themeBar').addEventListener('click', e => {
+    const b = e.target.closest('.themeBtn');
+    if (!b || b.dataset.theme === state.theme) return;
+    Sfx.init(); Sfx.click();
+    state.theme = b.dataset.theme;
+    save.currentTheme = state.theme;
+    persist();
+    startLevel(prog().unlocked);
+    renderHome();
+    scrollToCurrentLevel();
+  });
+
+  function renderDailyCalendar() {
+    const today = todayKey();
+    const [y, m, dToday] = today.split('-').map(Number);
+    const monthPrefix = today.slice(0, 7);
+    const monthLabel = new Date(Date.UTC(y, m - 1, 1))
+      .toLocaleDateString('fr-FR', { month: 'short', year: 'numeric', timeZone: 'UTC' }).toUpperCase();
+    $('calMonthName').textContent = monthLabel;
+
+    const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    let monthKeys = 0;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const k = `${monthPrefix}-${String(d).padStart(2, '0')}`;
+      if (save.daily.days[k]) monthKeys += (save.daily.days[k].keys || 0);
+    }
+
+    // Barre des 4 coffres du mois (seuils : 9, 24, 45, 72 clés)
+    const thresholds = [
+      { keys: 9,  icon: '📦', coins: 60,  gems: 1 },
+      { keys: 24, icon: '🥈', coins: 120, gems: 2 },
+      { keys: 45, icon: '🥇', coins: 220, gems: 4 },
+      { keys: 72, icon: '👑', coins: 400, gems: 8 }
+    ];
+    let chestHtml = `<div class="keyCount">🔑 ×${monthKeys}</div>`;
+    thresholds.forEach((th, idx) => {
+      const cKey = `${monthPrefix}:${idx}`;
+      const opened = !!save.daily.chests[cKey];
+      const ready = monthKeys >= th.keys && !opened;
+      chestHtml += `<button class="chestStep${opened || ready ? ' done' : ''}" data-chest="${idx}" title="Coffre à ${th.keys} clés">` +
+        `<span class="cIco">${opened ? '✅' : th.icon}</span>` +
+        `<span>${ready ? 'Ouvrir !' : th.keys + ' 🔑'}</span></button>`;
+    });
+    $('chestBar').innerHTML = chestHtml;
+
+    const grid = $('calGrid');
+    grid.innerHTML = '';
+    for (let d = 1; d <= daysInMonth; d++) {
+      const k = `${monthPrefix}-${String(d).padStart(2, '0')}`;
+      const info = save.daily.days[k];
+      const keys = info ? (info.keys || 0) : 0;
+      const div = document.createElement('div');
+      div.className = 'calDay' + (d === dToday ? ' today' : d > dToday ? ' future' : '') + (keys > 0 ? ' won' : '');
+      div.innerHTML = `<span class="k">${keys ? '🔑'.repeat(keys) : d <= dToday ? '···' : ''}</span><b>${d}</b>`;
+      grid.appendChild(div);
+    }
+
+    const doneToday = !!(save.daily.days[today] && save.daily.days[today].keys);
+    $('dailyDot').hidden = doneToday;
+    $('btnPlayDaily').textContent = doneToday
+      ? `REJOUER LE PUZZLE DU JOUR (${save.daily.days[today].score} pts)`
+      : 'JOUER LE PUZZLE DU JOUR';
+  }
+
+  $('chestBar').addEventListener('click', e => {
+    const b = e.target.closest('.chestStep');
+    if (!b) return;
+    const idx = Number(b.dataset.chest);
+    const today = todayKey();
+    const monthPrefix = today.slice(0, 7);
+    const thresholds = [
+      { keys: 9,  coins: 60,  gems: 1 },
+      { keys: 24, coins: 120, gems: 2 },
+      { keys: 45, coins: 220, gems: 4 },
+      { keys: 72, coins: 400, gems: 8 }
+    ];
+    const th = thresholds[idx];
+    const cKey = `${monthPrefix}:${idx}`;
+    if (save.daily.chests[cKey]) return;
+
+    let monthKeys = 0;
+    for (const [k, v] of Object.entries(save.daily.days)) {
+      if (k.startsWith(monthPrefix)) monthKeys += (v.keys || 0);
+    }
+    if (monthKeys < th.keys) {
+      Sfx.init(); Sfx.click();
+      showModal({
+        icon: '🔑',
+        title: `Coffre à ${th.keys} clés`,
+        text: `Tu as <b>${monthKeys} / ${th.keys} clés 🔑</b> ce mois-ci.<br>Joue le Puzzle du Jour chaque jour pour ouvrir ce coffre (récompense : <b>+${th.coins} 🪙 et +${th.gems} 💎</b>) !`,
+        buttons: [{ label: 'Compris', primary: true, onClick: () => hideModal() }]
+      });
+      return;
+    }
+    save.daily.chests[cKey] = true;
+    save.coins += th.coins;
+    save.gems += th.gems;
+    Sfx.init(); Sfx.win();
+    persist();
+    scheduleCloudSave();
+    renderDailyCalendar();
+    updateHudTop();
+    showModal({
+      icon: '🎉',
+      title: 'Coffre du Mois Ouvert !',
+      text: `Bravo ! Tu reçois <b>+${th.coins} 🪙 pièces d’or</b> et <b>+${th.gems} 💎 rubis</b> !`,
+      buttons: [{ label: 'Génial !', primary: true, onClick: () => hideModal() }]
+    });
+  });
+
+  function renderModesAndBadges() {
+    const list = $('modeList');
+    list.innerHTML = '';
+
+    // Carte Bonus du Jour
+    const giftDone = save.giftDate === todayKey();
+    const giftBtn = document.createElement('button');
+    giftBtn.className = 'modeCard';
+    giftBtn.dataset.action = 'gift';
+    giftBtn.innerHTML = `<span class="mi">🎁</span>` +
+      `<span class="mn"><span>Bonus du Jour</span><span class="mr">${giftDone ? 'Reçu ✓' : '+80 🪙 · +2 💎'}</span></span>` +
+      `<span class="md">Ouvre ton cadeau quotidien pour faire le plein de pièces et de rubis.</span>`;
+    list.appendChild(giftBtn);
+
+    for (const k of MODE_ORDER) {
+      const m = MODES[k];
+      const sp = save.special[k];
+      const rec = sp.best ? `Record ${fmtNum(sp.best)} pts` : 'À découvrir';
+      const b = document.createElement('button');
+      b.className = 'modeCard';
+      b.dataset.mode = k;
+      b.innerHTML = `<span class="mi">${m.icon}</span>` +
+        `<span class="mn"><span>${m.name} (${curTheme().short})</span><span class="mr">${rec}</span></span>` +
+        `<span class="md">${m.desc}</span>`;
+      list.appendChild(b);
+    }
+
+    const bg = $('badgeGrid');
+    bg.innerHTML = BADGES.map(b => {
+      const ok = !!save.badges[b.id];
+      return `<div class="badgeItem${ok ? ' unlocked' : ''}"><span class="bi">${b.icon}</span><div><b>${esc(b.name)}</b><span>${esc(b.desc)}</span></div></div>`;
+    }).join('');
+  }
+
+  function renderHome() {
+    document.body.classList.toggle('noTools', save.noTools);
+    renderThemeBar();
+    renderDailyCalendar();
+    renderModesAndBadges();
+
+    const p = prog();
+    $('btnPlay').textContent = `NIVEAU ${p.unlocked}`;
+    const won = Object.keys(p.best).length;
+    const totalStars = Object.values(p.best).reduce((a, b) => a + (b.stars || 1), 0);
+    $('homeInfo').textContent = won
+      ? `${won} niveau${won > 1 ? 'x' : ''} fleuri${won > 1 ? 's' : ''} en ${curTheme().name} · ${totalStars} ★`
+      : `Choisis ton thème de révision et lance le Niveau 1 !`;
+
+    const grid = $('levelGrid');
+    grid.innerHTML = '';
+    const count = Math.ceil(Math.max(LEVEL_COUNT, p.unlocked + 20) / WORLD_SIZE) * WORLD_SIZE;
+    const frag = document.createDocumentFragment();
+    for (let n = 1; n <= count; n++) {
+      if ((n - 1) % WORLD_SIZE === 0) {
+        const wIdx = Math.floor((n - 1) / WORLD_SIZE);
+        const wName = WORLD_NAMES[wIdx % WORLD_NAMES.length];
+        const w = document.createElement('div');
+        w.className = 'worldTitle';
+        w.textContent = `Chapitre ${wIdx + 1} · ${wName} (${n}–${n + WORLD_SIZE - 1})`;
+        frag.appendChild(w);
+      }
+      const unlocked = n <= p.unlocked;
+      const b = document.createElement('button');
+      const isCurrent = n === p.unlocked;
+      b.className = 'lvlTile' + (unlocked ? '' : ' locked') + (isCurrent ? ' current' : '');
+      b.disabled = !unlocked;
+      b.dataset.level = n;
+      const st = p.best[n] ? (p.best[n].stars || 1) : 0;
+      b.innerHTML = unlocked
+        ? `<b>${n}</b><span class="stars">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>`
+        : `<b>🔒</b><span class="stars">${n}</span>`;
+      frag.appendChild(b);
+    }
+    grid.appendChild(frag);
+
+    $('homeSound').textContent = Sfx.muted ? '🔇 Son coupé' : '🔊 Son activé';
+    $('homeTools').textContent = save.noTools ? '🚫 Mode Sans outils activé' : '🔨 Outils & Indices affichés';
+    $('homeFx').textContent = save.lowFx ? '⚡ Effets réduits' : '✨ Effets floraux complets';
+    $('prefPseudo').textContent = save.profile.pseudo ? `👤 Pseudo : ${save.profile.pseudo}` : '👤 Choisir mon pseudo';
+    $('prefPin').textContent = save.profile.hasPin ? '🔐 Code PIN : défini (changer)' : '🔐 Créer mon code PIN';
+    $('prefPin').hidden = !save.profile.pseudo;
+    $('btnResetProgress').textContent = `Effacer la progression du thème ${curTheme().name}…`;
+    $('btnDeleteAccount').hidden = !save.profile.playerId;
+    $('homeTag').textContent = save.profile.pseudo
+      ? `Bienvenue au jardin, ${save.profile.pseudo} ! Relie les lettres et révise en jouant.`
+      : 'Relie les lettres, fleuris la grille, révise entre amis !';
+    updateHudTop();
+  }
+
+  function scrollToCurrentLevel() {
+    const n = prog().unlocked;
+    const tile = $('levelGrid').querySelector(`[data-level="${n}"]`);
+    const wrap = $('gridWrap');
+    if (!tile || !wrap) return;
+    wrap.scrollTop = Math.max(0, tile.offsetTop - wrap.clientHeight / 2 + tile.offsetHeight / 2);
+  }
+
+  /* =====================================================================
+   * Multi : Classements en Ligne, Pseudo, Code PIN & Synchronisation
+   * ===================================================================== */
+  // Mode serveur simulé actif si ?mock=1 OU tant que NET_URL n'est pas encore renseigné
+  const MOCK = /[?&]mock=1\b/.test(location.search) || !NET_URL;
+  const toolsTag = () => (state.toolsUsed ? 't' : 'n');
+  const TAG_LABEL = { n: 'sans outils', t: 'avec outils' };
+  const fmtDay = key => String(key || '').split('-').reverse().join('/');
+
+  const Net = {
+    enabled: () => MOCK || !!(NET_URL && NET_ANON_KEY),
+    async rpc(fn, args) {
+      if (MOCK) return MockServer.call(fn, JSON.parse(JSON.stringify(args)));
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 8000);
+      try {
+        const res = await fetch(`${NET_URL}/rest/v1/rpc/${fn}`, {
+          method: 'POST',
+          signal: ctrl.signal,
+          headers: { apikey: NET_ANON_KEY, Authorization: `Bearer ${NET_ANON_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(args)
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+  };
+
+  const MockServer = (() => {
+    const KEY = 'mot-a-mot-mock-db';
+    let db;
+    try { db = JSON.parse(localStorage.getItem(KEY)); } catch (_) { db = null; }
+    if (!db) {
+      db = { players: [], scores: [] };
+      const fake = [['Camille', 1650, 7], ['Thomas', 1380, 6], ['Léa', 1120, 5], ['Hugo', 940, 4]];
+      fake.forEach(([pseudo, base, combo], i) => {
+        const id = 'mock-' + i;
+        db.players.push({ id, pseudo, secret: 'x' });
+        for (const th of THEME_ORDER) {
+          db.scores.push({ player_id: id, board: 'level', bkey: `${th}:1:n`, score: base - i * 90, combo, at: Date.now() - i * 1000 });
+        }
+        db.scores.push({ player_id: id, board: 'daily', bkey: `${todayKey()}:n`, score: Math.round(base * 1.2), combo, at: Date.now() - i * 1000 });
+        db.scores.push({ player_id: id, board: 'chrono', bkey: 'all:n', score: Math.round(base * 1.8), combo: combo + 2, at: Date.now() - i * 1000 });
+        db.scores.push({ player_id: id, board: 'endless', bkey: 'all:n', score: Math.round(base * 2.5), combo: combo + 3, at: Date.now() - i * 1000 });
+      });
+    }
+    const persistDb = () => { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (_) {} };
+    const auth = (id, secret) => db.players.find(p => p.id === id && (p.secret === secret || (p.devices || []).includes(secret)));
+    const weakPin = pin => !/^[0-9]{4,8}$/.test(pin) || /^(.)\1+$/.test(pin) || '0123456789'.includes(pin) || '9876543210'.includes(pin);
+    const pseudoOf = id => (db.players.find(p => p.id === id) || {}).pseudo || '?';
+    const bestPerPlayer = (board, key, field = 'score') => {
+      const best = new Map();
+      for (const s of db.scores) {
+        if (s.board !== board || s.bkey !== key) continue;
+        const b = best.get(s.player_id);
+        if (!b || s[field] > b[field] || (s[field] === b[field] && s.at < b.at)) best.set(s.player_id, s);
+      }
+      return [...best.values()].sort((a, b) => b[field] - a[field] || a.at - b.at);
+    };
+    const taken = (pseudo, exceptId) => db.players.some(p => p.id !== exceptId && p.pseudo.toLowerCase() === pseudo.toLowerCase());
+    const fns = {
+      claim_pseudo({ p_pseudo }) {
+        if (!validPseudo(p_pseudo)) return { ok: false, error: 'invalid' };
+        if (taken(p_pseudo)) return { ok: false, error: 'taken' };
+        const p = { id: 'p-' + Math.random().toString(36).slice(2), pseudo: p_pseudo.trim(), secret: Math.random().toString(36).slice(2) };
+        db.players.push(p);
+        return { ok: true, player_id: p.id, secret: p.secret };
+      },
+      rename_pseudo({ p_player, p_secret, p_pseudo }) {
+        const p = auth(p_player, p_secret);
+        if (!p) return { ok: false, error: 'auth' };
+        if (!validPseudo(p_pseudo)) return { ok: false, error: 'invalid' };
+        if (taken(p_pseudo, p.id)) return { ok: false, error: 'taken' };
+        p.pseudo = p_pseudo.trim();
+        return { ok: true };
+      },
+      set_pin({ p_player, p_secret, p_pin }) {
+        const p = auth(p_player, p_secret);
+        if (!p) return { ok: false, error: 'auth' };
+        if (weakPin(p_pin)) return { ok: false, error: 'weak' };
+        p.pin = p_pin; p.fails = 0; p.lockedUntil = 0;
+        return { ok: true };
+      },
+      login_pseudo({ p_pseudo, p_pin }) {
+        if (!/^[0-9]{4,8}$/.test(p_pin || '')) return { ok: false, error: 'badpin' };
+        const p = db.players.find(x => x.pseudo.toLowerCase() === String(p_pseudo).trim().toLowerCase());
+        if (!p) return { ok: false, error: 'unknown' };
+        if (!p.pin) return { ok: false, error: 'nopin' };
+        if (p.lockedUntil > Date.now()) return { ok: false, error: 'locked', wait: Math.ceil((p.lockedUntil - Date.now()) / 1000) };
+        if (p.pin !== p_pin) {
+          p.fails = (p.fails || 0) + 1;
+          if (p.fails >= 5) { p.fails = 0; p.lockedUntil = Date.now() + 900000; return { ok: false, error: 'locked', wait: 900 }; }
+          return { ok: false, error: 'badpin', left: 5 - p.fails };
+        }
+        p.fails = 0;
+        const secret = Math.random().toString(36).slice(2);
+        p.devices = [...(p.devices || []), secret].slice(-10);
+        return { ok: true, player_id: p.id, secret, pseudo: p.pseudo };
+      },
+      get_profile({ p_player, p_secret }) {
+        const p = auth(p_player, p_secret);
+        return p ? { ok: true, pseudo: p.pseudo, has_pin: !!p.pin } : { ok: false, error: 'auth' };
+      },
+      delete_account({ p_player, p_secret }) {
+        const p = auth(p_player, p_secret);
+        if (!p) return { ok: false, error: 'auth' };
+        db.players = db.players.filter(x => x.id !== p_player);
+        db.scores = db.scores.filter(s => s.player_id !== p_player);
+        return { ok: true };
+      },
+      save_progress({ p_player, p_secret, p_data }) {
+        const p = auth(p_player, p_secret);
+        if (!p) return { ok: false, error: 'auth' };
+        p.progress = p_data; p.progressAt = new Date().toISOString();
+        return { ok: true };
+      },
+      load_progress({ p_player, p_secret }) {
+        const p = auth(p_player, p_secret);
+        return p ? { ok: true, data: p.progress || null, updated_at: p.progressAt || null } : { ok: false, error: 'auth' };
+      },
+      submit_score({ p_player, p_secret, p_board, p_key, p_score, p_combo, p_turns }) {
+        if (!auth(p_player, p_secret)) return { ok: false, error: 'auth' };
+        db.scores.push({ player_id: p_player, board: p_board, bkey: p_key, score: p_score, combo: p_combo, turns: p_turns, at: Date.now() });
+        const byScore = bestPerPlayer(p_board, p_key);
+        const byCombo = bestPerPlayer(p_board, p_key, 'combo');
+        const mine = byScore.findIndex(s => s.player_id === p_player);
+        return {
+          ok: true, rank: mine + 1, total: byScore.length,
+          top_score: byScore[0] ? { score: byScore[0].score, pseudo: pseudoOf(byScore[0].player_id) } : null,
+          top_combo: byCombo[0] ? { combo: byCombo[0].combo, pseudo: pseudoOf(byCombo[0].player_id) } : null
+        };
+      },
+      get_top({ p_board, p_key, p_limit }) {
+        return bestPerPlayer(p_board, p_key).slice(0, p_limit)
+          .map((s, i) => ({ rank: i + 1, pseudo: pseudoOf(s.player_id), score: s.score, combo: s.combo }));
+      },
+      get_top_combo({ p_board, p_key, p_limit }) {
+        return bestPerPlayer(p_board, p_key, 'combo').slice(0, p_limit)
+          .map((s, i) => ({ rank: i + 1, pseudo: pseudoOf(s.player_id), score: s.score, combo: s.combo }));
+      },
+      get_my_rank({ p_player, p_board, p_key }) {
+        const list = bestPerPlayer(p_board, p_key);
+        const i = list.findIndex(s => s.player_id === p_player);
+        return i < 0 ? { rank: null, total: list.length } : { rank: i + 1, score: list[i].score, total: list.length };
+      },
+      get_level_records({ p_diff, p_tag, p_from, p_to }) {
+        const out = [];
+        for (let lvl = p_from; lvl <= p_to; lvl++) {
+          const key = `${p_diff}:${lvl}:${p_tag}`;
+          const s = bestPerPlayer('level', key)[0];
+          const c = bestPerPlayer('level', key, 'combo')[0];
+          if (s) out.push({ level: lvl, score: s.score, score_pseudo: pseudoOf(s.player_id), combo: c.combo, combo_pseudo: pseudoOf(c.player_id) });
+        }
+        return out;
+      },
+      get_board_period({ p_board, p_tag, p_period, p_ref, p_field, p_player, p_limit }) {
+        const from = periodStart(p_ref, p_period);
+        const to = p_period === 'all' ? '2999-12-31' : p_period === 'day' ? p_ref
+          : p_period === 'week' ? shiftDay(from, 6)
+          : p_period === 'month' ? shiftDay(new Date(Date.UTC(+from.slice(0, 4), +from.slice(5, 7), 1)).toISOString().slice(0, 10), -1)
+          : from.slice(0, 4) + '-12-31';
+        const best = new Map();
+        for (const s of db.scores) {
+          if (s.board !== p_board) continue;
+          const day = p_board === 'daily' ? s.bkey.slice(0, 10) : parisDate(new Date(s.at));
+          const okKey = p_board === 'daily' ? s.bkey.endsWith(':' + p_tag) : s.bkey === 'all:' + p_tag;
+          if (!okKey || day < from || day > to) continue;
+          const b = best.get(s.player_id);
+          if (!b || s[p_field] > b[p_field]) best.set(s.player_id, s);
+        }
+        const list = [...best.values()].sort((a, b) => b[p_field] - a[p_field] || a.at - b.at)
+          .map((s, i) => ({ rank: i + 1, player_id: s.player_id, pseudo: pseudoOf(s.player_id), score: s.score, combo: s.combo }));
+        const mine = list.find(x => x.player_id === p_player);
+        return {
+          ok: true, from, to,
+          top: list.slice(0, p_limit).map(({ player_id, ...x }) => x),
+          me: mine ? { rank: mine.rank, score: mine.score, combo: mine.combo, total: list.length } : null
+        };
+      }
+    };
+    return {
+      async call(fn, args) {
+        await new Promise(r => setTimeout(r, 120));
+        const res = fns[fn](args);
+        persistDb();
+        return res;
+      }
+    };
+  })();
+
+  const BAD_WORDS = ['merde', 'pute', 'connard', 'connasse', 'salope', 'encule', 'nique', 'fdp', 'batard', 'nazi', 'hitler',
+    'fuck', 'shit', 'bitch', 'cunt', 'nigg', 'dick', 'pussy', 'asshole', 'whore', 'porn'];
+  function validPseudo(p) {
+    const t = String(p || '').trim();
+    if (!/^[\p{L}\p{N} _.\-]{3,16}$/u.test(t)) return false;
+    const plain = t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+    return !BAD_WORDS.some(w => plain.includes(w));
+  }
+  const validPin = pin => /^[0-9]{4,8}$/.test(pin) && !/^(.)\1+$/.test(pin) &&
+    !'0123456789'.includes(pin) && !'9876543210'.includes(pin);
+  const PIN_RULE = 'Le code PIN : 4 à 8 chiffres, pas 0000 ni 1234.';
+  const pinInputHtml = (id, placeholder) =>
+    `<input id="${id}" class="pseudoInput pinInput" maxlength="8" inputmode="numeric" autocomplete="off" placeholder="${placeholder}">`;
+
+  async function ensureRegistered() {
+    const p = save.profile;
+    if (p.playerId && p.secret) return true;
+    if (!p.pseudo || !Net.enabled()) return false;
+    const r = await Net.rpc('claim_pseudo', { p_pseudo: p.pseudo });
+    if (r && r.ok) {
+      p.playerId = r.player_id;
+      p.secret = r.secret;
+      p.hasPin = false;
+      persist();
+      await sendPendingPin();
+      return true;
+    }
+    if (r && r.error === 'taken') {
+      p.pseudo = '';
+      persist();
+      if (!state.modalOpen) askPseudo(false, 'Ce pseudo a été pris entre-temps, choisis-en un autre.');
+    }
+    return false;
+  }
+
+  async function sendPendingPin() {
+    const p = save.profile;
+    if (!p.pinPending || !p.playerId) return;
+    try {
+      const r = await Net.rpc('set_pin', { p_player: p.playerId, p_secret: p.secret, p_pin: p.pinPending });
+      if (r && (r.ok || r.error === 'weak')) {
+        p.hasPin = !!r.ok;
+        p.pinPending = '';
+        persist();
+      }
+    } catch (_) {}
+  }
+
+  function lostIdentity() {
+    const old = save.profile.pseudo;
+    save.profile = { pseudo: '', playerId: '', secret: '', later: false, hasPin: null, pinPending: '', pinAsked: '' };
+    persist();
+    renderHome();
+    if (!state.modalOpen) {
+      askPseudo(true, old ? `Cet appareil n’est plus connecté à « ${old} ». Utilise « J’ai déjà un pseudo » avec ton code PIN.` : '');
+    }
+  }
+
+  async function syncProfile() {
+    const p = save.profile;
+    if (!Net.enabled() || !p.playerId) return;
+    let r;
+    try { r = await Net.rpc('get_profile', { p_player: p.playerId, p_secret: p.secret }); } catch (_) { return; }
+    if (!r) return;
+    if (!r.ok) { if (r.error === 'auth') lostIdentity(); return; }
+    p.pseudo = r.pseudo;
+    p.hasPin = !!r.has_pin;
+    persist();
+    renderHome();
+    await syncProgress();
+    if (p.pinPending) await sendPendingPin();
+  }
+
+  function askPseudo(firstTime, message = '') {
+    const current = save.profile.pseudo;
+    const isNew = !save.profile.playerId;
+    const buttons = [{ label: firstTime ? 'C’est parti !' : 'Valider', primary: true, onClick: () => submitPseudo() }];
+    if (isNew && Net.enabled()) buttons.push({ label: '🔑 J’ai déjà un pseudo', onClick: () => askLogin(firstTime) });
+    buttons.push({ label: firstTime ? 'Plus tard' : 'Annuler', onClick: () => { if (firstTime) { save.profile.later = true; persist(); } hideModal(); } });
+    showModal({
+      icon: '👤',
+      title: firstTime ? 'Bienvenue dans Mot à Mot !' : 'Ton pseudo',
+      text: (firstTime ? 'Choisis ton pseudo pour le classement entre amis.<br>' : 'Il apparaît dans les classements.<br>') +
+        `<input id="pseudoInput" class="pseudoInput" maxlength="16" autocomplete="off" placeholder="3 à 16 caractères" value="${esc(current)}">` +
+        (isNew ? pinInputHtml('pinInput', 'Code PIN (4 à 8 chiffres)') +
+          '<small class="pinHelp">Note-le bien : il permet de retrouver ta progression sur un autre appareil.</small>' : '') +
+        `<span id="pseudoErr" class="pseudoErr">${esc(message)}</span>`,
+      buttons
+    });
+    const input = $('pseudoInput');
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { if (isNew) $('pinInput').focus(); else submitPseudo(); } });
+    if (isNew) $('pinInput').addEventListener('keydown', e => { if (e.key === 'Enter') submitPseudo(); });
+    setTimeout(() => input.focus(), 50);
+  }
+
+  let pseudoBusy = false;
+  async function submitPseudo() {
+    if (pseudoBusy) return;
+    const input = $('pseudoInput');
+    const pinEl = $('pinInput');
+    const err = $('pseudoErr');
+    const wanted = input.value.trim();
+    const pin = pinEl ? pinEl.value.trim() : '';
+    if (!validPseudo(wanted)) {
+      err.textContent = 'Entre 3 et 16 caractères (lettres, chiffres, espace, . _ -), sans grossièreté.';
+      return;
+    }
+    if (pinEl && !validPin(pin)) { err.textContent = PIN_RULE; pinEl.focus(); return; }
+    const p = save.profile;
+    if (wanted === p.pseudo && !pinEl) { hideModal(); return; }
+    if (Net.enabled()) {
+      pseudoBusy = true;
+      err.textContent = 'Vérification…';
+      try {
+        const r = p.playerId
+          ? await Net.rpc('rename_pseudo', { p_player: p.playerId, p_secret: p.secret, p_pseudo: wanted })
+          : await Net.rpc('claim_pseudo', { p_pseudo: wanted });
+        if (!r.ok) {
+          err.textContent = r.error === 'taken' ? `« ${wanted} » est déjà pris.`
+            : r.error === 'auth' ? 'Cet appareil n’est plus connecté.'
+            : 'Ce pseudo n’est pas accepté.';
+          return;
+        }
+        if (!p.playerId) { p.playerId = r.player_id; p.secret = r.secret; p.hasPin = false; }
+      } catch (_) {
+        if (p.playerId) { err.textContent = 'Pas de connexion : réessaie plus tard.'; return; }
+      } finally {
+        pseudoBusy = false;
+      }
+    }
+    p.pseudo = wanted;
+    p.later = false;
+    if (pinEl) p.pinPending = pin;
+    persist();
+    hideModal();
+    renderHome();
+    await sendPendingPin();
+    renderHome();
+    flushPending();
+    syncProgress();
+  }
+
+  function askLogin(firstTime = false) {
+    const p = save.profile;
+    showModal({
+      icon: '🔑',
+      title: 'J’ai déjà un pseudo',
+      text: 'Entre ton pseudo et ton code PIN pour retrouver tes niveaux et tes records sur cet appareil.<br>' +
+        '<input id="loginPseudo" class="pseudoInput" maxlength="16" autocomplete="off" placeholder="Ton pseudo">' +
+        pinInputHtml('loginPin', 'Ton code PIN') +
+        '<span id="loginErr" class="pseudoErr"></span>',
+      buttons: [
+        { label: 'Me connecter', primary: true, onClick: () => submitLogin() },
+        { label: 'Retour', onClick: () => (p.playerId ? hideModal() : askPseudo(firstTime)) }
+      ]
+    });
+    $('loginPseudo').addEventListener('keydown', e => { if (e.key === 'Enter') $('loginPin').focus(); });
+    $('loginPin').addEventListener('keydown', e => { if (e.key === 'Enter') submitLogin(); });
+    setTimeout(() => $('loginPseudo').focus(), 50);
+  }
+
+  async function submitLogin() {
+    if (pseudoBusy) return;
+    const err = $('loginErr');
+    const pseudo = $('loginPseudo').value.trim();
+    const pin = $('loginPin').value.trim();
+    if (!pseudo || !/^[0-9]{4,8}$/.test(pin)) { err.textContent = 'Entre ton pseudo et ton code PIN (4 à 8 chiffres).'; return; }
+    pseudoBusy = true;
+    err.textContent = 'Connexion…';
+    try {
+      const r = await Net.rpc('login_pseudo', { p_pseudo: pseudo, p_pin: pin });
+      if (!r.ok) {
+        err.textContent = {
+          unknown: `Aucun joueur ne s’appelle « ${pseudo} ».`,
+          nopin: 'Ce pseudo n’a pas encore de code PIN.',
+          badpin: r.left ? `Code incorrect (encore ${r.left} essai${r.left > 1 ? 's' : ''}).` : 'Code incorrect.',
+          locked: `Trop d’erreurs : réessaie dans ${Math.max(1, Math.ceil((r.wait || 900) / 60))} min.`
+        }[r.error] || 'Connexion refusée.';
+        return;
+      }
+      if (save.profile.playerId && save.profile.playerId !== r.player_id) await flushPending();
+      Object.assign(save.profile, { pseudo: r.pseudo, playerId: r.player_id, secret: r.secret, later: false, hasPin: true, pinPending: '' });
+      persist();
+      await syncProgress();
+      showModal({
+        icon: '✅',
+        title: `Bon retour, ${r.pseudo} !`,
+        text: 'Ta progression et tes records ont été synchronisés sur cet appareil.',
+        buttons: [{ label: 'Jouer', primary: true, onClick: () => hideModal() }]
+      });
+      renderHome();
+      flushPending();
+    } catch (_) {
+      err.textContent = 'Pas de connexion : réessaie plus tard.';
+    } finally {
+      pseudoBusy = false;
+    }
+  }
+
+  function askPin() {
+    const p = save.profile;
+    showModal({
+      icon: '🔐',
+      title: p.hasPin ? 'Changer mon code PIN' : 'Créer mon code PIN',
+      text: `Protège ton pseudo « <b>${esc(p.pseudo)}</b> » et retrouve ta progression sur tous tes appareils.` +
+        pinInputHtml('pinInput', '4 à 8 chiffres') +
+        '<span id="pseudoErr" class="pseudoErr"></span>',
+      buttons: [
+        { label: 'Enregistrer', primary: true, onClick: () => submitPin() },
+        { label: 'Annuler', onClick: () => hideModal() }
+      ]
+    });
+    $('pinInput').addEventListener('keydown', e => { if (e.key === 'Enter') submitPin(); });
+    setTimeout(() => $('pinInput').focus(), 50);
+  }
+
+  async function submitPin() {
+    if (pseudoBusy) return;
+    const pin = $('pinInput').value.trim();
+    const err = $('pseudoErr');
+    if (!validPin(pin)) { err.textContent = PIN_RULE; return; }
+    pseudoBusy = true;
+    err.textContent = 'Enregistrement…';
+    try {
+      if (!(await ensureRegistered())) { err.textContent = 'Pas de connexion.'; return; }
+      const p = save.profile;
+      const r = await Net.rpc('set_pin', { p_player: p.playerId, p_secret: p.secret, p_pin: pin });
+      if (!r.ok) { err.textContent = PIN_RULE; return; }
+      p.hasPin = true; p.pinPending = '';
+      persist();
+      renderHome();
+      showModal({
+        icon: '🔐',
+        title: 'Code PIN enregistré',
+        text: 'Tu peux maintenant te connecter depuis n’importe quel appareil avec « J’ai déjà un pseudo ».',
+        buttons: [{ label: 'Parfait', primary: true, onClick: () => hideModal() }]
+      });
+    } catch (_) {
+      err.textContent = 'Pas de connexion.';
+    } finally {
+      pseudoBusy = false;
+    }
+  }
+
+  /* ---------------- Synchronisation de la Progression ---------------- */
+  const toCount = v => Math.max(0, Math.floor(Number(v)) || 0);
+
+  function progressSnapshot() {
+    return {
+      v: 1,
+      coins: save.coins,
+      gems: save.gems,
+      stats: save.stats,
+      badges: save.badges,
+      progress: save.progress,
+      special: save.special,
+      daily: save.daily
+    };
+  }
+
+  function mergeProgress(remote) {
+    if (!remote || typeof remote !== 'object') return false;
+    let changed = false;
+    if (toCount(remote.coins) > save.coins) { save.coins = toCount(remote.coins); changed = true; }
+    if (toCount(remote.gems) > save.gems) { save.gems = toCount(remote.gems); changed = true; }
+
+    for (const k of THEME_ORDER) {
+      const r = remote.progress && remote.progress[k];
+      if (!r || typeof r !== 'object') continue;
+      const l = save.progress[k];
+      const u = Math.min(toCount(r.unlocked), 5000);
+      if (u > l.unlocked) { l.unlocked = u; changed = true; }
+      if (r.best && typeof r.best === 'object') {
+        for (const [lvl, rb] of Object.entries(r.best)) {
+          if (!rb || typeof rb !== 'object') continue;
+          const lb = l.best[lvl] || { score: 0, combo: 0, stars: 0 };
+          const score = Math.max(toCount(lb.score), toCount(rb.score));
+          const combo = Math.max(toCount(lb.combo), toCount(rb.combo));
+          const stars = Math.min(3, Math.max(toCount(lb.stars), toCount(rb.stars)));
+          if (!l.best[lvl] || score !== lb.score || combo !== lb.combo || stars !== lb.stars) {
+            l.best[lvl] = { score, combo, stars };
+            changed = true;
+          }
+        }
+      }
+    }
+
+    for (const k of MODE_ORDER) {
+      const r = remote.special && remote.special[k];
+      if (!r || typeof r !== 'object') continue;
+      const l = save.special[k];
+      if (toCount(r.best) > l.best) { l.best = toCount(r.best); changed = true; }
+      if (toCount(r.bestCombo) > l.bestCombo) { l.bestCombo = toCount(r.bestCombo); changed = true; }
+      if (toCount(r.plays) > l.plays) { l.plays = toCount(r.plays); changed = true; }
+    }
+
+    if (remote.daily && remote.daily.days && typeof remote.daily.days === 'object') {
+      for (const [dKey, rd] of Object.entries(remote.daily.days)) {
+        if (!rd || typeof rd !== 'object') continue;
+        const ld = save.daily.days[dKey] || { score: 0, combo: 0, keys: 0 };
+        const score = Math.max(toCount(ld.score), toCount(rd.score));
+        const combo = Math.max(toCount(ld.combo), toCount(rd.combo));
+        const keys = Math.min(3, Math.max(toCount(ld.keys), toCount(rd.keys)));
+        if (!save.daily.days[dKey] || score !== ld.score || keys !== ld.keys) {
+          save.daily.days[dKey] = { score, combo, keys };
+          changed = true;
+        }
+      }
+    }
+    return changed;
+  }
+
+  let cloudTimer = 0, cloudBusy = false, cloudDirty = false;
+  async function syncProgress() {
+    const p = save.profile;
+    if (!Net.enabled() || !p.playerId || cloudBusy) return false;
+    cloudBusy = true;
+    clearTimeout(cloudTimer);
+    try {
+      const r = await Net.rpc('load_progress', { p_player: p.playerId, p_secret: p.secret });
+      if (!r || !r.ok) { if (r && r.error === 'auth') lostIdentity(); return false; }
+      if (mergeProgress(r.data)) { persist(); renderHome(); }
+      cloudDirty = false;
+      await Net.rpc('save_progress', { p_player: p.playerId, p_secret: p.secret, p_data: progressSnapshot() });
+      return true;
+    } catch (_) {
+      cloudDirty = true;
+      return false;
+    } finally {
+      cloudBusy = false;
+    }
+  }
+
+  function scheduleCloudSave() {
+    cloudDirty = true;
+    clearTimeout(cloudTimer);
+    cloudTimer = setTimeout(syncProgress, 3500);
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden && cloudDirty) syncProgress(); });
+
+  /* ---------------- Envoi des Scores & Classements ---------------- */
+  let flushing = false;
+  function submitScore(entry) {
+    save.pending.push(entry);
+    persist();
+    return flushPending(entry);
+  }
+
+  async function flushPending(target = null) {
+    if (!Net.enabled() || flushing || !save.pending.length) return null;
+    flushing = true;
+    let result = null;
+    try {
+      if (!(await ensureRegistered())) return null;
+      while (save.pending.length) {
+        const e = save.pending[0];
+        const r = await Net.rpc('submit_score', {
+          p_player: save.profile.playerId, p_secret: save.profile.secret,
+          p_board: e.board, p_key: e.bkey, p_score: e.score, p_combo: e.combo, p_turns: e.turns, p_extra: e.extra || null
+        });
+        if (r && r.error === 'rate') break;
+        if (r && r.error === 'auth') { lostIdentity(); break; }
+        save.pending.shift();
+        persist();
+        if (e === target) result = r;
+      }
+    } catch (_) {} finally {
+      flushing = false;
+    }
+    return result;
+  }
+
+  let worldText = '';
+  function setWorld(text) {
+    worldText = text;
+    const el = $('worldLine');
+    if (el) el.textContent = text;
+  }
+  function worldMessage(r, tag, levelBoard) {
+    if (!r || !r.ok) return save.profile.pseudo ? '🌍 Score mis en file d’attente.' : '🌍 Choisis un pseudo (⚙️) pour figurer au classement.';
+    const cat = ` (${TAG_LABEL[tag]})`;
+    if (r.rank === 1) return `🌍 Nouveau record n°1${cat} !`;
+    let t = `🌍 Classé ${r.rank}e sur ${r.total}${cat}`;
+    if (r.top_score) t += ` · record : ${fmtNum(r.top_score.score)} par ${r.top_score.pseudo}`;
+    if (levelBoard && r.top_combo && r.top_combo.combo >= 2) t += ` · combo ×${r.top_combo.combo} (${r.top_combo.pseudo})`;
+    return t;
+  }
+  function worldLineHtml() {
+    return `<span class="worldLine" id="worldLine">${esc(worldText)}</span>`;
+  }
+
+  let topReq = 0;
+  async function showBoardTop(board, key, title, onBack = null) {
+    const req = ++topReq;
+    let field = 'score', data = null;
+    showModal({
+      icon: '🏆',
+      title,
+      text: `<div class="chips" id="topChips"><button class="chip active" data-f="score">⭐ Points</button><button class="chip" data-f="combo">🔥 Combo</button></div>` +
+        '<div id="topList" class="rankList topList"><div class="rankEmpty">Chargement…</div></div>',
+      buttons: [{ label: onBack ? '← Retour' : 'Fermer', primary: true, onClick: () => (onBack ? onBack() : hideModal()) }]
+    });
+    const me = save.profile.pseudo.toLowerCase();
+    const draw = () => {
+      const list = $('topList');
+      if (!list || req !== topReq) return;
+      if (!data) { list.innerHTML = '<div class="rankEmpty">Classement indisponible hors ligne.</div>'; return; }
+      const rows = field === 'score' ? data.byScore : data.byCombo;
+      let html = rows.map(r => `<div class="rankRow${r.pseudo.toLowerCase() === me ? ' me' : ''}"><span class="pos">${r.rank <= 3 ? ['🥇', '🥈', '🥉'][r.rank - 1] : r.rank}</span>` +
+        `<span class="who">${esc(r.pseudo)}<small>${field === 'score' ? `combo ×${r.combo}` : `${fmtNum(r.score)} pts`}</small></span>` +
+        `<span class="pts">${field === 'score' ? fmtNum(r.score) : '×' + r.combo}</span></div>`).join('');
+      if (!rows.length) html = '<div class="rankEmpty">Aucun score enregistré : sois le premier !</div>';
+      list.innerHTML = html;
+    };
+    $('topChips').addEventListener('click', e => {
+      const b = e.target.closest('.chip');
+      if (!b) return;
+      Sfx.click();
+      field = b.dataset.f;
+      for (const c of $('topChips').children) c.classList.toggle('active', c === b);
+      draw();
+    });
+    try {
+      const [byScore, byCombo, mine] = await Promise.all([
+        Net.rpc('get_top', { p_board: board, p_key: key, p_limit: 10 }),
+        Net.rpc('get_top_combo', { p_board: board, p_key: key, p_limit: 10 }),
+        save.profile.playerId ? Net.rpc('get_my_rank', { p_player: save.profile.playerId, p_board: board, p_key: key }) : Promise.resolve(null)
+      ]);
+      data = { byScore: byScore || [], byCombo: byCombo || [], mine };
+    } catch (_) { data = null; }
+    draw();
+  }
+
+  const RANK_BOARDS = [['level', '🗺️ Niveaux'], ['daily', '📅 Du Jour'], ['chrono', '⏱️ Chrono'], ['endless', '♾️ Infini']];
+  const PERIODS = [['day', 'Jour'], ['week', 'Semaine'], ['month', 'Mois'], ['year', 'Année'], ['all', 'Toujours']];
+  const rankView = { board: 'level', tag: 'n', theme: null, period: 'day', ref: null, field: 'score' };
+  let rankReq = 0;
+
+  function shiftPeriod(ref, period, step) {
+    const [y, m] = ref.split('-').map(Number);
+    if (period === 'day') return shiftDay(ref, step);
+    if (period === 'week') return shiftDay(ref, step * 7);
+    if (period === 'month') return new Date(Date.UTC(y, m - 1 + step, 1)).toISOString().slice(0, 10);
+    if (period === 'year') return new Date(Date.UTC(y + step, 0, 1)).toISOString().slice(0, 10);
+    return ref;
+  }
+  function periodStart(ref, period) {
+    const [y, m, d] = ref.split('-').map(Number);
+    if (period === 'week') {
+      const dow = (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7;
+      return shiftDay(ref, -dow);
+    }
+    if (period === 'month') return `${ref.slice(0, 7)}-01`;
+    if (period === 'year') return `${ref.slice(0, 4)}-01-01`;
+    return period === 'all' ? '2000-01-01' : ref;
+  }
+  function periodLabel(ref, period) {
+    const today = todayKey();
+    const [y, m] = ref.split('-').map(Number);
+    if (period === 'day') return ref === today ? 'Aujourd’hui' : fmtDay(ref);
+    if (period === 'week') {
+      const from = periodStart(ref, 'week');
+      return from === periodStart(today, 'week') ? 'Cette semaine' : `Sem. ${fmtDay(from).slice(0, 5)} – ${fmtDay(shiftDay(from, 6)).slice(0, 5)}`;
+    }
+    if (period === 'month') {
+      const name = new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+      return name.charAt(0).toUpperCase() + name.slice(1);
+    }
+    if (period === 'year') return String(y);
+    return 'Depuis toujours';
+  }
+
+  function renderRankChips() {
+    const chips = RANK_BOARDS.map(([k, label]) => `<button class="chip${rankView.board === k ? ' active' : ''}" data-board="${k}">${label}</button>`).join('');
+    const tags = ['n', 't'].map(t => `<button class="chip${rankView.tag === t ? ' active' : ''}" data-tag="${t}">${t === 'n' ? '🚫 Sans outils' : '🔨 Avec outils'}</button>`).join('');
+    let html = chips + '<span style="flex-basis:100%"></span>' + tags;
+    if (rankView.board !== 'level') {
+      html += '<span style="flex-basis:100%"></span>' +
+        PERIODS.map(([k, label]) => `<button class="chip small${rankView.period === k ? ' active' : ''}" data-period="${k}">${label}</button>`).join('') +
+        '<span style="flex-basis:100%"></span>' +
+        [['score', '⭐ Points'], ['combo', '🔥 Combo']].map(([k, label]) => `<button class="chip small${rankView.field === k ? ' active' : ''}" data-field="${k}">${label}</button>`).join('');
+    }
+    $('rankChips').innerHTML = html;
+  }
+
+  $('rankChips').addEventListener('click', e => {
+    const b = e.target.closest('.chip');
+    if (!b) return;
+    Sfx.init(); Sfx.click();
+    if (b.dataset.board) rankView.board = b.dataset.board;
+    if (b.dataset.tag) rankView.tag = b.dataset.tag;
+    if (b.dataset.period) { rankView.period = b.dataset.period; rankView.ref = todayKey(); }
+    if (b.dataset.field) rankView.field = b.dataset.field;
+    loadRanks();
+  });
+
+  $('rankHead').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b || b.disabled) return;
+    Sfx.init(); Sfx.click();
+    const step = Number(b.dataset.step);
+    if (rankView.board === 'level') {
+      const i = THEME_ORDER.indexOf(rankView.theme);
+      rankView.theme = THEME_ORDER[(i + step + THEME_ORDER.length) % THEME_ORDER.length];
+    } else {
+      rankView.ref = shiftPeriod(rankView.ref, rankView.period, step);
+    }
+    loadRanks();
+  });
+
+  $('rankList').addEventListener('click', e => {
+    const row = e.target.closest('.rankRow.tap');
+    if (!row) return;
+    Sfx.init(); Sfx.click();
+    const lvl = Number(row.dataset.level);
+    showBoardTop('level', `${rankView.theme}:${lvl}:${rankView.tag}`, `Niveau ${lvl} · ${THEMES[rankView.theme].name}`);
+  });
+
+  async function loadRanks() {
+    const today = todayKey();
+    if (!rankView.ref) rankView.ref = today;
+    if (!rankView.theme) rankView.theme = state.theme;
+    renderRankChips();
+    const list = $('rankList');
+    const board = rankView.board;
+
+    if (board === 'level') {
+      const th = THEMES[rankView.theme];
+      $('rankHead').innerHTML = `<button data-step="-1">◀</button><span>${th.icon} ${th.name}</span><button data-step="1">▶</button>`;
+    } else if (rankView.period === 'all') {
+      $('rankHead').innerHTML = '<span>Top 10 de tous les temps</span>';
+    } else {
+      const last = periodStart(rankView.ref, rankView.period) >= periodStart(today, rankView.period);
+      $('rankHead').innerHTML = `<button data-step="-1">◀</button><span>${periodLabel(rankView.ref, rankView.period)}</span><button data-step="1"${last ? ' disabled' : ''}>▶</button>`;
+    }
+    $('rankNote').textContent = (save.profile.pseudo ? `Connecté sous « ${save.profile.pseudo} ».` : 'Choisis un pseudo dans ⚙️ pour apparaître au classement.') +
+      (MOCK && !NET_URL ? ' (Mode démo local)' : '');
+
+    const req = ++rankReq;
+    list.innerHTML = '<div class="rankEmpty">Chargement…</div>';
+    try {
+      if (board === 'level') {
+        const to = Math.max(20, save.progress[rankView.theme].unlocked + 5);
+        const rows = await Net.rpc('get_level_records', { p_diff: rankView.theme, p_tag: rankView.tag, p_from: 1, p_to: Math.min(to, 2000) });
+        if (req !== rankReq) return;
+        list.innerHTML = rows.length ? rows.map(r => `<div class="rankRow tap" role="button" tabindex="0" data-level="${r.level}"><span class="pos">Niv. ${r.level}</span>` +
+          `<span class="who">${fmtNum(r.score)} pts — ${esc(r.score_pseudo)}<small>combo ×${r.combo} — ${esc(r.combo_pseudo)}</small></span></div>`).join('')
+          : '<div class="rankEmpty">Aucun record sur ce thème pour l’instant : à toi de jouer !</div>';
+        return;
+      }
+      const field = rankView.field;
+      const r = await Net.rpc('get_board_period', {
+        p_board: board, p_tag: rankView.tag, p_period: rankView.period, p_ref: rankView.ref, p_field: field,
+        p_player: save.profile.playerId || null, p_limit: 10
+      });
+      if (req !== rankReq) return;
+      const top = (r && r.top) || [];
+      const me = save.profile.pseudo.toLowerCase();
+      const val = x => (field === 'score' ? fmtNum(x.score) : '×' + x.combo);
+      const sub = x => (field === 'score' ? `combo ×${x.combo}` : `${fmtNum(x.score)} pts`);
+      let html = top.map(x => `<div class="rankRow${x.pseudo.toLowerCase() === me ? ' me' : ''}"><span class="pos">${x.rank <= 3 ? ['🥇', '🥈', '🥉'][x.rank - 1] : x.rank}</span>` +
+        `<span class="who">${esc(x.pseudo)}<small>${sub(x)}</small></span><span class="pts">${val(x)}</span></div>`).join('');
+      if (!top.length) html = '<div class="rankEmpty">Personne sur cette période : lance une partie !</div>';
+      if (r && r.me && r.me.rank > 10) {
+        html += `<div class="rankRow me"><span class="pos">${r.me.rank}</span><span class="who">${esc(save.profile.pseudo)}<small>sur ${r.me.total} joueurs</small></span><span class="pts">${val(r.me)}</span></div>`;
+      }
+      list.innerHTML = html;
+    } catch (_) {
+      if (req === rankReq) list.innerHTML = '<div class="rankEmpty">Classements indisponibles hors ligne.</div>';
+    }
+  }
+
+  /* ---------------- Mises à jour (version.json) ---------------- */
+  function isNewerVersion(a, b) {
+    const pa = String(a).split('.').map(Number);
+    const pb = String(b).split('.').map(Number);
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+      const d = (pa[i] || 0) - (pb[i] || 0);
+      if (d) return d > 0;
+    }
+    return false;
+  }
+
+  async function checkUpdate(manual) {
+    let latest = null;
+    try {
+      const res = await fetch(`version.json?t=${Date.now()}`, { cache: 'no-store' });
+      if (res.ok) latest = (await res.json()).version;
+    } catch (_) {}
+    if (latest && isNewerVersion(latest, GAME_VERSION)) {
+      const bar = $('updateBar');
+      bar.textContent = `🔄 Nouvelle version ${latest} disponible : mettre à jour`;
+      bar.hidden = false;
+      if (manual) forceRefresh();
+      return;
+    }
+    if (!manual) return;
+    showModal({
+      icon: latest ? '✅' : '📡',
+      title: latest ? 'Tu es à jour' : 'Vérification hors ligne',
+      text: latest ? `Tu joues sur la dernière version (<b>v${GAME_VERSION}</b>).` : 'Impossible de joindre le site, mais tu peux forcer le rechargement.',
+      buttons: [
+        { label: 'OK', primary: true, onClick: () => hideModal() },
+        { label: '🔄 Recharger quand même', onClick: () => forceRefresh() }
+      ]
+    });
+  }
+
+  async function forceRefresh() {
+    persist();
+    try {
+      const regs = navigator.serviceWorker ? await navigator.serviceWorker.getRegistrations() : [];
+      await Promise.all(regs.map(r => r.update().catch(() => {})));
+    } catch (_) {}
+    try {
+      if (window.caches) {
+        const keys = await caches.keys();
+        await Promise.all(keys.filter(k => k.startsWith('motamot-')).map(k => caches.delete(k)));
+      }
+    } catch (_) {}
+    location.reload();
+  }
+
+  /* =====================================================================
+   * Écouteurs des Boutons de l'Interface
+   * ===================================================================== */
+  let homeTab = 'levels';
+  function applyTab() {
+    const panels = {
+      levels: 'panelLevels', daily: 'panelDaily', modes: 'panelModes',
+      ranks: 'panelRanks', prefs: 'panelPrefs', faq: 'panelFaq'
+    };
+    $('tabLevels').classList.toggle('active', homeTab === 'levels');
+    $('tabDaily').classList.toggle('active', homeTab === 'daily');
+    $('tabModes').classList.toggle('active', homeTab === 'modes');
+    $('tabRanks').classList.toggle('active', homeTab === 'ranks');
+    for (const [tab, id] of Object.entries(panels)) $(id).classList.toggle('show', homeTab === tab);
+    $('homeTabs').style.display = (homeTab === 'prefs' || homeTab === 'faq') ? 'none' : '';
+    if (homeTab === 'ranks') loadRanks();
+    if (homeTab === 'daily') renderDailyCalendar();
+  }
+
+  function showHome() {
+    setCellPickMode(false);
+    sendEndlessScore();
+    renderHome();
+    applyTab();
+    $('home').classList.add('show');
+    state.homeOpen = true;
+    scrollToCurrentLevel();
+  }
+
+  function hideHome() {
+    $('home').classList.remove('show');
+    state.homeOpen = false;
+    layout();
+  }
+
+  $('tabLevels').addEventListener('click', () => { Sfx.init(); Sfx.click(); homeTab = 'levels'; applyTab(); scrollToCurrentLevel(); });
+  $('tabDaily').addEventListener('click', () => { Sfx.init(); Sfx.click(); homeTab = 'daily'; applyTab(); });
+  $('tabModes').addEventListener('click', () => { Sfx.init(); Sfx.click(); homeTab = 'modes'; applyTab(); });
+  $('tabRanks').addEventListener('click', () => { Sfx.init(); Sfx.click(); homeTab = 'ranks'; applyTab(); });
+  $('btnPrefs').addEventListener('click', () => { Sfx.init(); Sfx.click(); homeTab = homeTab === 'prefs' ? 'levels' : 'prefs'; renderHome(); applyTab(); });
+  $('prefsBack').addEventListener('click', () => { Sfx.init(); Sfx.click(); homeTab = 'levels'; applyTab(); });
+  $('prefFaq').addEventListener('click', () => { Sfx.init(); Sfx.click(); homeTab = 'faq'; applyTab(); });
+  $('faqBack').addEventListener('click', () => { Sfx.init(); Sfx.click(); homeTab = 'prefs'; applyTab(); });
+  $('prefUpdate').addEventListener('click', () => { Sfx.init(); Sfx.click(); checkUpdate(true); });
+  $('updateBar').addEventListener('click', () => { Sfx.init(); Sfx.click(); forceRefresh(); });
+  $('prefPseudo').addEventListener('click', () => { Sfx.init(); Sfx.click(); askPseudo(false); });
+  $('prefPin').addEventListener('click', () => { Sfx.init(); Sfx.click(); if (save.profile.pseudo) askPin(); else askPseudo(false); });
+  $('prefLogin').addEventListener('click', () => { Sfx.init(); Sfx.click(); askLogin(false); });
+
+  $('btnPlay').addEventListener('click', () => {
+    Sfx.init(); Sfx.click();
+    startLevel(prog().unlocked);
+    hideHome();
+  });
+  $('btnDailyQuick').addEventListener('click', () => {
+    Sfx.init(); Sfx.click();
+    homeTab = 'daily';
+    applyTab();
+  });
+  $('btnPlayDaily').addEventListener('click', () => {
+    Sfx.init(); Sfx.click();
+    startDaily();
+    hideHome();
+  });
+
+  $('levelGrid').addEventListener('click', e => {
+    const b = e.target.closest('.lvlTile');
+    if (!b || b.disabled) return;
+    Sfx.init(); Sfx.click();
+    startLevel(Number(b.dataset.level));
+    hideHome();
+  });
+
+  $('modeList').addEventListener('click', e => {
+    const b = e.target.closest('.modeCard');
+    if (!b) return;
+    Sfx.init(); Sfx.click();
+    if (b.dataset.action === 'gift') { openDailyGiftModal(); return; }
+    if (b.dataset.mode) {
+      startSpecialMode(b.dataset.mode);
+      hideHome();
+    }
+  });
+
+  $('btnHome').addEventListener('click', () => {
+    Sfx.init(); Sfx.click();
+    showHome();
+  });
+  $('coinPill').addEventListener('click', () => openDailyGiftModal());
+  $('btnDailyGift').addEventListener('click', () => openDailyGiftModal());
+  $('btnBonusWords').addEventListener('click', () => showBonusWordsModal());
+  $('btnShuffle').addEventListener('click', () => shuffleWheel());
+  $('btnHintOne').addEventListener('click', () => useHintOne());
+  $('btnHintCell').addEventListener('click', () => useHintCellToggle());
+  $('btnHintMulti').addEventListener('click', () => useHintMulti());
+
+  function renderSoundIcon() {
+    $('btnSound').innerHTML = Sfx.muted
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="#fff8e7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="#fff8e7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+  }
+
+  $('btnSound').addEventListener('click', () => {
+    Sfx.init();
+    Sfx.muted = !Sfx.muted;
+    save.muted = Sfx.muted;
+    if (!Sfx.muted) Sfx.click();
+    persist();
+    renderSoundIcon();
+    renderHome();
+  });
+
+  $('homeSound').addEventListener('click', () => $('btnSound').click());
+  $('homeTools').addEventListener('click', () => {
+    Sfx.init(); Sfx.click();
+    save.noTools = !save.noTools;
+    persist();
+    renderHome();
+  });
+  $('homeFx').addEventListener('click', () => {
+    Sfx.init(); Sfx.click();
+    save.lowFx = !save.lowFx;
+    persist();
+    layout();
+    renderHome();
+  });
+
+  $('btnResetProgress').addEventListener('click', () => {
+    Sfx.init(); Sfx.click();
+    confirmBox('Effacer ce thème ?',
+      `Toute ta progression locale du thème <b>${esc(curTheme().name)}</b> sera remise au niveau 1.`,
+      'Oui, effacer', () => {
+        save.progress[state.theme] = defaultThemeProg();
+        persist();
+        startLevel(1);
+        showHome();
+      }, true);
+  });
+
+  $('btnDeleteAccount').addEventListener('click', () => {
+    Sfx.init(); Sfx.click();
+    confirmBox('Supprimer mon compte ?',
+      `Ton pseudo « <b>${esc(save.profile.pseudo)}</b> », tes scores en ligne et ta progression synchronisée seront définitivement supprimés du serveur.`,
+      'Supprimer définitivement', async () => {
+        try {
+          if (save.profile.playerId) {
+            await Net.rpc('delete_account', { p_player: save.profile.playerId, p_secret: save.profile.secret });
+          }
+        } catch (_) {}
+        save.profile = { pseudo: '', playerId: '', secret: '', later: true, hasPin: null, pinPending: '', pinAsked: '' };
+        persist();
+        renderHome();
+      }, true);
+  });
+
+  /* =====================================================================
+   * Boucle Principale & Initialisation
+   * ===================================================================== */
+  let lastT = performance.now();
+  function loop(t) {
+    const dtMs = Math.min(50, Math.max(0, t - lastT));
+    lastT = t;
+    now += dtMs;
+    const dt = dtMs / 1000;
+
+    runTimers();
+    if (state.mode === 'chrono' && !state.over && !state.homeOpen && !state.modalOpen && !state.blooming) {
+      const before = state.timeLeft;
+      state.timeLeft = Math.max(0, state.timeLeft - dtMs);
+      if (Math.ceil(before / 1000) !== Math.ceil(state.timeLeft / 1000)) updateHudTop();
+      if (state.timeLeft <= 0) endChrono();
+    }
+
+    updateFx(dt);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    drawGardenBackground(ctx);
+    drawCrosswordGrid(ctx);
+    drawFlowerPotAndWheel(ctx);
+    drawOverlayFx(fctx);
+
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener('resize', layout);
+  window.addEventListener('orientationchange', () => setTimeout(layout, 150));
+
+  Sfx.muted = save.muted;
+  $('gameVersion').textContent = 'v' + GAME_VERSION;
+  renderSoundIcon();
+  startLevel(prog().unlocked);
+  showHome();
+  requestAnimationFrame(loop);
+
+  if (!save.profile.pseudo && !save.profile.later) {
+    setTimeout(() => askPseudo(true), 650);
+  }
+  flushPending();
+  setTimeout(syncProfile, 900);
+  setTimeout(() => checkUpdate(false), 2500);
+  window.addEventListener('online', () => { flushPending(); syncProfile(); });
+
+  // Exposition pour tests automatisés
+  window.__motamot = { state, save, generateCrossword, submitWord, THEMES };
+})();
+</script>
+<script>
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+</script></body>
+</html>
