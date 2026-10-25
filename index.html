@@ -700,7 +700,7 @@
   /* =====================================================================
    * Constantes & Configuration
    * ===================================================================== */
-  const GAME_VERSION = '1.1';
+  const GAME_VERSION = '1.2';
   const NET_URL = 'https://enqgjsvqygqxeikfxwxe.supabase.co';
   const NET_ANON_KEY = 'sb_publishable_0EJZem-TiB4ltXxpQbeZRQ_JAaOjGb9';
 
@@ -723,35 +723,40 @@
       desc: 'Linux, Windows Server, routage TCP/IP, DNS, VLAN, stockage et virtualisation.',
       potTop: '#2b6cb0', potRim: '#4299e1', potDark: '#1a365d',
       tileTop: '#00b5d8', tileBot: '#0987a0', tileEdge: '#065666',
-      grassA: '#236c5e', grassB: '#134239'
+      grassA: '#1f5566', grassB: '#0f2a36',
+      doodle: 'rgba(150, 230, 255, 0.22)', floorA: '#3a4553', floorB: '#232b36', floorLine: 'rgba(140, 175, 210, 0.35)', floor: 'perf'
     },
     it: {
       name: 'IT, Dev & Cloud', short: '💻 IT & Dev', icon: '💻',
       desc: 'Algorithmes, code, bases de données, API, web, conteneurs et architecture.',
       potTop: '#6b46c1', potRim: '#9f7aea', potDark: '#322659',
       tileTop: '#805ad5', tileBot: '#553c9a', tileEdge: '#322659',
-      grassA: '#2d5a7b', grassB: '#18364d'
+      grassA: '#2b3f73', grassB: '#141d3b',
+      doodle: 'rgba(195, 175, 255, 0.22)', floorA: '#2c3148', floorB: '#191c2b', floorLine: 'rgba(165, 150, 235, 0.32)', floor: 'keys'
     },
     medical: {
       name: 'Médical & Paramédical', short: '🩺 Médical', icon: '🩺',
       desc: 'Anatomie, sémiologie, pathologies, soins infirmiers, pharmacie et biologie.',
       potTop: '#c53030', potRim: '#f56565', potDark: '#63171b',
       tileTop: '#e53e3e', tileBot: '#9b2c2c', tileEdge: '#63171b',
-      grassA: '#2f7a4f', grassB: '#194a2e'
+      grassA: '#2a7480', grassB: '#13404a',
+      doodle: 'rgba(225, 255, 250, 0.24)', floorA: '#eef7f6', floorB: '#c6e1e0', floorLine: 'rgba(50, 135, 135, 0.3)', floor: 'tiles'
     },
     cyber: {
       name: 'Cybersécurité', short: '🛡️ Cyber', icon: '🛡️',
       desc: 'Cryptographie, pentest, pare-feu, malwares, audit, SOC et défense réseau.',
       potTop: '#b7791f', potRim: '#ecc94b', potDark: '#5f370e',
       tileTop: '#dd6b20', tileBot: '#9c4221', tileEdge: '#652b19',
-      grassA: '#3d5a27', grassB: '#223514'
+      grassA: '#1f2d3d', grassB: '#0a121b',
+      doodle: 'rgba(110, 255, 165, 0.2)', floorA: '#1b2633', floorB: '#0d141d', floorLine: 'rgba(80, 225, 140, 0.32)', floor: 'hex'
     },
     science: {
       name: 'Sciences & Culture', short: '🔬 Sciences', icon: '🔬',
       desc: 'Physique, chimie, astronomie, géologie, vivant et grandes découvertes.',
       potTop: '#2c7a7b', potRim: '#4fd1c5', potDark: '#1d4044',
       tileTop: '#38b2ac', tileBot: '#285e61', tileEdge: '#1d4044',
-      grassA: '#346e3f', grassB: '#1c4224'
+      grassA: '#203d70', grassB: '#0b1836',
+      doodle: 'rgba(205, 228, 255, 0.22)', floorA: '#e6eef7', floorB: '#bccde2', floorLine: 'rgba(55, 95, 155, 0.3)', floor: 'grid'
     }
   };
   const THEME_ORDER = ['general', 'sysadmin', 'it', 'medical', 'cyber', 'science'];
@@ -2439,6 +2444,381 @@
   const fract = x => x - Math.floor(x);
   const hashNoise = i => fract(Math.sin(i * 127.1 + 311.7) * 43758.5453);
 
+  /* =====================================================================
+   * Décors des thèmes : pictogrammes au trait dessinés dans un carré [-1, 1]
+   * ===================================================================== */
+  const ICONS = {
+    // --- Admin Sys & Réseaux ---
+    rj45(c) {
+      roundRect(c, -0.45, -0.2, 0.9, 0.75, 0.12); c.stroke();
+      c.strokeRect(-0.18, 0.55, 0.36, 0.2);
+      c.beginPath();
+      for (let i = 0; i < 4; i++) { const x = -0.27 + i * 0.18; c.moveTo(x, -0.2); c.lineTo(x, 0.08); }
+      c.moveTo(0, -0.2); c.bezierCurveTo(0, -0.6, 0.6, -0.55, 0.45, -0.95);
+      c.stroke();
+    },
+    router(c) {
+      roundRect(c, -0.85, 0, 1.7, 0.55, 0.14); c.stroke();
+      c.beginPath();
+      c.moveTo(-0.55, 0); c.lineTo(-0.75, -0.75);
+      c.moveTo(0.55, 0); c.lineTo(0.75, -0.75);
+      c.stroke();
+      for (const x of [-0.75, 0.75]) { c.beginPath(); c.arc(x, -0.8, 0.07, 0, Math.PI * 2); c.fill(); }
+      for (let i = 0; i < 4; i++) { c.beginPath(); c.arc(-0.5 + i * 0.22, 0.28, 0.06, 0, Math.PI * 2); c.fill(); }
+      c.strokeRect(0.42, 0.18, 0.25, 0.2);
+    },
+    server(c) {
+      for (let i = 0; i < 3; i++) {
+        const y = -0.85 + i * 0.58;
+        roundRect(c, -0.6, y, 1.2, 0.48, 0.08); c.stroke();
+        c.beginPath(); c.moveTo(-0.45, y + 0.24); c.lineTo(0.1, y + 0.24); c.stroke();
+        c.beginPath(); c.arc(0.38, y + 0.24, 0.06, 0, Math.PI * 2); c.fill();
+      }
+    },
+    switch(c) {
+      roundRect(c, -0.95, -0.3, 1.9, 0.6, 0.1); c.stroke();
+      for (let i = 0; i < 6; i++) c.strokeRect(-0.8 + i * 0.27, -0.12, 0.18, 0.2);
+    },
+    wifi(c) {
+      c.beginPath();
+      for (const r of [0.3, 0.6, 0.9]) { c.moveTo(r * Math.cos(-2.36), 0.5 + r * Math.sin(-2.36)); c.arc(0, 0.5, r, -2.36, -0.78); }
+      c.stroke();
+      c.beginPath(); c.arc(0, 0.5, 0.08, 0, Math.PI * 2); c.fill();
+    },
+    cable(c) {
+      c.beginPath(); c.moveTo(-0.7, 0.2); c.bezierCurveTo(-0.3, -0.7, 0.3, 0.9, 0.7, -0.2); c.stroke();
+      c.strokeRect(-0.95, 0.12, 0.28, 0.3);
+      c.strokeRect(0.67, -0.4, 0.28, 0.3);
+    },
+    // --- IT, Dev & Cloud ---
+    code(c) {
+      c.beginPath();
+      c.moveTo(-0.4, -0.5); c.lineTo(-0.9, 0); c.lineTo(-0.4, 0.5);
+      c.moveTo(0.4, -0.5); c.lineTo(0.9, 0); c.lineTo(0.4, 0.5);
+      c.moveTo(0.18, -0.7); c.lineTo(-0.18, 0.7);
+      c.stroke();
+    },
+    braces(c) { iconText(c, '{ }', 1.5); },
+    prompt(c) {
+      roundRect(c, -0.9, -0.65, 1.8, 1.3, 0.12); c.stroke();
+      c.beginPath(); c.moveTo(-0.9, -0.35); c.lineTo(0.9, -0.35);
+      c.moveTo(-0.6, -0.05); c.lineTo(-0.35, 0.15); c.lineTo(-0.6, 0.35);
+      c.moveTo(-0.2, 0.38); c.lineTo(0.25, 0.38);
+      c.stroke();
+    },
+    cloud(c) {
+      c.beginPath();
+      c.arc(-0.45, 0.15, 0.35, Math.PI / 2, Math.PI * 1.5);
+      c.arc(-0.05, -0.15, 0.45, Math.PI, 0);
+      c.arc(0.5, 0.1, 0.38, -Math.PI / 2, Math.PI / 2);
+      c.closePath();
+      c.stroke();
+    },
+    db(c) {
+      c.beginPath();
+      c.ellipse(0, -0.6, 0.6, 0.2, 0, 0, Math.PI * 2);
+      c.moveTo(-0.6, -0.6); c.lineTo(-0.6, 0.6); c.moveTo(0.6, -0.6); c.lineTo(0.6, 0.6);
+      c.moveTo(0.6, 0); c.ellipse(0, 0, 0.6, 0.2, 0, 0, Math.PI);
+      c.moveTo(0.6, 0.6); c.ellipse(0, 0.6, 0.6, 0.2, 0, 0, Math.PI);
+      c.stroke();
+    },
+    gear(c) {
+      c.beginPath();
+      for (let k = 0; k <= 32; k++) {
+        const a = (k / 32) * Math.PI * 2;
+        const r = Math.floor(k / 2) % 2 ? 0.62 : 0.85;
+        k ? c.lineTo(Math.cos(a) * r, Math.sin(a) * r) : c.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+      }
+      c.closePath();
+      c.moveTo(0.25, 0); c.arc(0, 0, 0.25, 0, Math.PI * 2);
+      c.stroke();
+    },
+    // --- Médical & Paramédical ---
+    syringe(c) {
+      c.rotate(-0.7);
+      c.strokeRect(-0.7, -0.18, 1.05, 0.36);
+      c.beginPath();
+      for (let i = 0; i < 4; i++) { const x = -0.5 + i * 0.2; c.moveTo(x, -0.18); c.lineTo(x, -0.04); }
+      c.moveTo(-0.7, 0); c.lineTo(-1, 0);
+      c.moveTo(-1, -0.22); c.lineTo(-1, 0.22);
+      c.moveTo(-0.7, -0.32); c.lineTo(-0.7, 0.32);
+      c.moveTo(0.5, 0); c.lineTo(1, 0);
+      c.stroke();
+      c.strokeRect(0.35, -0.08, 0.15, 0.16);
+    },
+    stetho(c) {
+      c.beginPath();
+      c.moveTo(-0.5, -0.95); c.lineTo(-0.35, -0.75);
+      c.quadraticCurveTo(-0.45, -0.05, 0, 0.05);
+      c.moveTo(0.5, -0.95); c.lineTo(0.35, -0.75);
+      c.quadraticCurveTo(0.45, -0.05, 0, 0.05);
+      c.bezierCurveTo(0, 0.75, 0.75, 0.8, 0.7, 0.22);
+      c.stroke();
+      c.beginPath(); c.arc(0.7, 0.05, 0.17, 0, Math.PI * 2); c.stroke();
+      c.beginPath(); c.arc(0.7, 0.05, 0.06, 0, Math.PI * 2); c.fill();
+    },
+    pill(c) {
+      c.rotate(-0.6);
+      roundRect(c, -0.8, -0.3, 1.6, 0.6, 0.3); c.stroke();
+      c.beginPath(); c.moveTo(0, -0.3); c.lineTo(0, 0.3);
+      c.moveTo(-0.55, -0.12); c.lineTo(-0.25, -0.12);
+      c.stroke();
+    },
+    cross(c) {
+      const a = 0.27, b = 0.8;
+      c.beginPath();
+      c.moveTo(-a, -b); c.lineTo(a, -b); c.lineTo(a, -a); c.lineTo(b, -a); c.lineTo(b, a); c.lineTo(a, a);
+      c.lineTo(a, b); c.lineTo(-a, b); c.lineTo(-a, a); c.lineTo(-b, a); c.lineTo(-b, -a); c.lineTo(-a, -a);
+      c.closePath();
+      c.stroke();
+    },
+    ecg(c) {
+      const pts = [[-1, 0], [-0.45, 0], [-0.3, -0.25], [-0.15, 0], [0, 0], [0.1, 0.35], [0.25, -0.85], [0.4, 0.2], [0.5, 0], [1, 0]];
+      c.beginPath();
+      pts.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y));
+      c.stroke();
+    },
+    bandage(c) {
+      c.rotate(0.6);
+      roundRect(c, -0.9, -0.28, 1.8, 0.56, 0.28); c.stroke();
+      c.strokeRect(-0.3, -0.2, 0.6, 0.4);
+      for (const [x, y] of [[-0.6, -0.08], [-0.6, 0.08], [0.6, -0.08], [0.6, 0.08]]) {
+        c.beginPath(); c.arc(x, y, 0.04, 0, Math.PI * 2); c.fill();
+      }
+    },
+    // --- Cybersécurité ---
+    lock(c) {
+      c.beginPath();
+      c.moveTo(-0.38, -0.1); c.lineTo(-0.38, -0.35);
+      c.arc(0, -0.35, 0.38, Math.PI, 0);
+      c.lineTo(0.38, -0.1);
+      c.stroke();
+      roundRect(c, -0.55, -0.1, 1.1, 0.85, 0.12); c.stroke();
+      c.beginPath(); c.arc(0, 0.22, 0.1, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.moveTo(0, 0.25); c.lineTo(0, 0.48); c.stroke();
+    },
+    shield(c) {
+      c.beginPath();
+      c.moveTo(0, -0.9); c.lineTo(0.7, -0.6);
+      c.quadraticCurveTo(0.7, 0.4, 0, 0.9);
+      c.quadraticCurveTo(-0.7, 0.4, -0.7, -0.6);
+      c.closePath();
+      c.moveTo(-0.3, 0); c.lineTo(-0.05, 0.25); c.lineTo(0.35, -0.25);
+      c.stroke();
+    },
+    key(c) {
+      c.beginPath();
+      c.arc(-0.55, 0, 0.32, 0, Math.PI * 2);
+      c.moveTo(-0.23, 0); c.lineTo(0.9, 0);
+      c.moveTo(0.6, 0); c.lineTo(0.6, 0.25);
+      c.moveTo(0.8, 0); c.lineTo(0.8, 0.3);
+      c.stroke();
+    },
+    binary(c) { iconText(c, '1010', 0.75, -0.25); iconText(c, '0110', 0.75, 0.45); },
+    bug(c) {
+      c.beginPath();
+      c.ellipse(0, 0.15, 0.35, 0.5, 0, 0, Math.PI * 2);
+      c.moveTo(0.2, -0.5); c.arc(0, -0.5, 0.2, 0, Math.PI * 2);
+      for (const s of [-1, 1]) {
+        for (const y of [-0.1, 0.15, 0.4]) { c.moveTo(s * 0.33, y); c.lineTo(s * 0.7, y + (y - 0.15) * 0.8); }
+        c.moveTo(s * 0.1, -0.68); c.lineTo(s * 0.3, -0.92);
+      }
+      c.moveTo(0, -0.3); c.lineTo(0, 0.6);
+      c.stroke();
+    },
+    finger(c) {
+      c.beginPath();
+      for (const r of [0.2, 0.42, 0.64, 0.86]) {
+        c.moveTo(r * Math.cos(Math.PI * 1.05), 0.3 + r * Math.sin(Math.PI * 1.05));
+        c.arc(0, 0.3, r, Math.PI * 1.05, Math.PI * 1.95);
+      }
+      c.moveTo(-0.2, 0.3); c.lineTo(-0.2, 0.75);
+      c.moveTo(0.42, 0.3); c.lineTo(0.42, 0.6);
+      c.stroke();
+    },
+    // --- Sciences & Culture ---
+    atom(c) {
+      for (const a of [0, Math.PI / 3, -Math.PI / 3]) {
+        c.beginPath(); c.ellipse(0, 0, 0.9, 0.3, a, 0, Math.PI * 2); c.stroke();
+      }
+      c.beginPath(); c.arc(0, 0, 0.12, 0, Math.PI * 2); c.fill();
+    },
+    flask(c) {
+      c.beginPath();
+      c.moveTo(-0.2, -0.9); c.lineTo(-0.2, -0.3); c.lineTo(-0.7, 0.75);
+      c.quadraticCurveTo(-0.75, 0.9, -0.55, 0.9); c.lineTo(0.55, 0.9);
+      c.quadraticCurveTo(0.75, 0.9, 0.7, 0.75); c.lineTo(0.2, -0.3); c.lineTo(0.2, -0.9);
+      c.moveTo(-0.32, -0.9); c.lineTo(0.32, -0.9);
+      c.moveTo(-0.5, 0.35); c.lineTo(0.5, 0.35);
+      c.stroke();
+      for (const [x, y, r] of [[-0.15, 0.6, 0.07], [0.2, 0.5, 0.05], [0.05, 0.1, 0.05]]) {
+        c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.stroke();
+      }
+    },
+    planet(c) {
+      c.beginPath(); c.arc(0, 0, 0.45, 0, Math.PI * 2); c.stroke();
+      c.beginPath(); c.ellipse(0, 0, 0.95, 0.28, -0.35, 0, Math.PI * 2); c.stroke();
+    },
+    dna(c) {
+      for (const ph of [0, Math.PI]) {
+        c.beginPath();
+        for (let k = 0; k <= 24; k++) {
+          const y = -0.9 + k * 0.075;
+          const x = 0.4 * Math.sin(y * 4.2 + ph);
+          k ? c.lineTo(x, y) : c.moveTo(x, y);
+        }
+        c.stroke();
+      }
+      c.beginPath();
+      for (let k = 1; k < 8; k++) {
+        const y = -0.9 + k * 0.225;
+        c.moveTo(0.4 * Math.sin(y * 4.2), y); c.lineTo(0.4 * Math.sin(y * 4.2 + Math.PI), y);
+      }
+      c.stroke();
+    },
+    star(c) {
+      c.beginPath();
+      for (let k = 0; k < 10; k++) {
+        const a = -Math.PI / 2 + (k * Math.PI) / 5;
+        const r = k % 2 ? 0.38 : 0.9;
+        k ? c.lineTo(Math.cos(a) * r, Math.sin(a) * r) : c.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+      }
+      c.closePath();
+      c.stroke();
+    },
+    bulb(c) {
+      c.beginPath();
+      c.arc(0, -0.2, 0.5, Math.PI * 0.8, Math.PI * 2.2);
+      c.lineTo(0.18, 0.5); c.lineTo(-0.18, 0.5); c.closePath();
+      c.moveTo(-0.18, 0.62); c.lineTo(0.18, 0.62);
+      c.moveTo(-0.12, 0.74); c.lineTo(0.12, 0.74);
+      c.stroke();
+    }
+  };
+  function iconText(c, txt, size, y = 0.05) {
+    c.font = `bold ${size}px ui-monospace, Consolas, monospace`;
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.fillText(txt, 0, y);
+  }
+  const THEME_ICONS = {
+    sysadmin: ['rj45', 'router', 'server', 'switch', 'wifi', 'cable'],
+    it: ['code', 'braces', 'prompt', 'cloud', 'db', 'gear'],
+    medical: ['syringe', 'stetho', 'pill', 'cross', 'ecg', 'bandage'],
+    cyber: ['lock', 'shield', 'key', 'binary', 'bug', 'finger'],
+    science: ['atom', 'flask', 'planet', 'dna', 'star', 'bulb']
+  };
+
+  // Le papier peint ne change qu'avec le thème ou la taille de l'écran : on le garde en cache
+  let decorCache = null, decorKey = '';
+  function getThemeDecor(t) {
+    const key = `${state.theme}|${W}|${H}|${DPR}|${Math.round(L.pillY)}`;
+    if (decorCache && decorKey === key) return decorCache;
+    decorKey = key;
+    decorCache = decorCache || document.createElement('canvas');
+    decorCache.width = Math.round(W * DPR);
+    decorCache.height = Math.round(H * DPR);
+    const c = decorCache.getContext('2d');
+    c.setTransform(DPR, 0, 0, DPR, 0, 0);
+    c.clearRect(0, 0, W, H);
+    const icons = THEME_ICONS[state.theme] || [];
+    if (!icons.length) return decorCache;
+    c.strokeStyle = c.fillStyle = t.doodle;
+    c.lineCap = 'round';
+    c.lineJoin = 'round';
+    const cs = clamp(W / 4.6, 74, 112);
+    const bottom = L.pillY - 30;
+    let n = 0, prev = -1;
+    for (let j = 0; 52 + j * cs * 0.82 < bottom; j++) {
+      for (let i = -1; i * cs < W + cs; i++) {
+        n++;
+        const x = (i + 0.5 + (j % 2) * 0.5) * cs + (hashNoise(n * 5 + 1) - 0.5) * cs * 0.3;
+        const y = 52 + (j + 0.5) * cs * 0.82 + (hashNoise(n * 5 + 2) - 0.5) * cs * 0.25;
+        if (y > bottom) continue;
+        let k = Math.floor(hashNoise(n * 5 + 3) * icons.length);
+        if (k === prev) k = (k + 1) % icons.length;
+        prev = k;
+        const s = cs * (0.24 + hashNoise(n * 5 + 4) * 0.08);
+        c.save();
+        c.translate(x, y);
+        c.rotate((hashNoise(n * 5 + 5) - 0.5) * 0.7);
+        c.scale(s, s);
+        c.lineWidth = 2.2 / s;
+        ICONS[icons[k]](c);
+        c.restore();
+      }
+    }
+    return decorCache;
+  }
+
+  /** Sol du thème sous le pot : faux plancher, carrelage d'hôpital, clavier, hexagones ou paillasse */
+  function drawThemeFloor(c, t, patioTop) {
+    const top = patioTop + 14;
+    c.save();
+    const g = c.createLinearGradient(0, top, 0, H);
+    g.addColorStop(0, t.floorA);
+    g.addColorStop(1, t.floorB);
+    roundRect(c, -10, top, W + 20, H - patioTop, 26);
+    c.fillStyle = g;
+    c.fill();
+    c.lineWidth = 3;
+    c.strokeStyle = t.floorLine;
+    c.stroke();
+    c.clip();
+
+    c.strokeStyle = c.fillStyle = t.floorLine;
+    c.lineWidth = 1.2;
+    const y0 = top + 4;
+    if (t.floor === 'perf') {
+      const s = 46;
+      for (let x = 0; x < W; x += s) for (let y = y0; y < H; y += s) {
+        c.strokeRect(x + 2, y + 2, s - 4, s - 4);
+        for (let a = 1; a <= 3; a++) for (let b = 1; b <= 3; b++) {
+          c.beginPath(); c.arc(x + (a * s) / 4, y + (b * s) / 4, 1.6, 0, Math.PI * 2); c.fill();
+        }
+      }
+    } else if (t.floor === 'keys') {
+      const s = 42;
+      for (let y = y0, row = 0; y < H; y += s, row++) {
+        for (let x = (row % 2) * -s / 2; x < W; x += s) { roundRect(c, x + 4, y + 4, s - 8, s - 8, 7); c.stroke(); }
+      }
+    } else if (t.floor === 'tiles') {
+      const s = 46;
+      for (let x = 0; x < W; x += s) for (let y = y0, row = 0; y < H; y += s, row++) {
+        c.strokeRect(x, y, s, s);
+        if ((Math.round(x / s) + row) % 3 === 0) {
+          c.beginPath();
+          c.moveTo(x + s / 2, y + s / 2 - 7); c.lineTo(x + s / 2, y + s / 2 + 7);
+          c.moveTo(x + s / 2 - 7, y + s / 2); c.lineTo(x + s / 2 + 7, y + s / 2);
+          c.stroke();
+        }
+      }
+    } else if (t.floor === 'hex') {
+      const r = 22, hw = r * Math.sqrt(3);
+      for (let y = y0, row = 0; y < H + r; y += r * 1.5, row++) {
+        for (let x = (row % 2) * hw / 2; x < W + hw; x += hw) {
+          c.beginPath();
+          for (let k = 0; k < 6; k++) {
+            const a = Math.PI / 6 + (k * Math.PI) / 3;
+            k ? c.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r) : c.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+          }
+          c.closePath();
+          c.stroke();
+        }
+      }
+    } else {
+      for (let x = 0; x < W; x += 24) {
+        c.lineWidth = x % 96 === 0 ? 1.6 : 0.7;
+        c.beginPath(); c.moveTo(x, y0); c.lineTo(x, H); c.stroke();
+      }
+      for (let y = y0, k = 0; y < H; y += 24, k++) {
+        c.lineWidth = k % 4 === 0 ? 1.6 : 0.7;
+        c.beginPath(); c.moveTo(0, y); c.lineTo(W, y); c.stroke();
+      }
+    }
+    c.restore();
+  }
+
   function drawGardenBackground(c) {
     const t = curTheme();
     // 1. Pelouse verdoyante ensoleillée
@@ -2447,6 +2827,13 @@
     g.addColorStop(1, t.grassB);
     c.fillStyle = g;
     c.fillRect(0, 0, W, H);
+
+    // Thèmes de révision : papier peint d'objets du métier et sol assorti à la place du jardin
+    if (t.floor) {
+      c.drawImage(getThemeDecor(t), 0, 0, W, H);
+      drawThemeFloor(c, t, L.pillY - 8);
+      return;
+    }
 
     // Texture de brins d'herbe subtils et petites fleurs de pelouse
     const bladeCount = save.lowFx ? 28 : 65;

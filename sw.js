@@ -1,6 +1,6 @@
 // Mode hors ligne de Mot à Mot.
 // Cache préfixé « motamot- » pour ne jamais interférer avec les autres jeux hébergés sur beboxos.github.io.
-const CACHE = 'motamot-1.1';
+const CACHE = 'motamot-1.2';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
