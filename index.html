@@ -150,6 +150,20 @@
   }
   #hintBanner.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* Fiche de révision : définition du mot du thème qui vient d'être trouvé */
+  #defCard {
+    position: fixed; z-index: 7; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 62px);
+    width: min(92vw, 460px); transform: translateX(-50%) translateY(-10px); opacity: 0; pointer-events: none;
+    padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.35; color: #f4f8ff;
+    background: rgba(14, 26, 40, 0.92); border: 2px solid rgba(255, 216, 77, 0.75);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.5); transition: opacity .25s, transform .25s;
+  }
+  #defCard.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+  #defCard b { color: #ffd84d; letter-spacing: .04em; }
+  .learnList { max-height: 34vh; overflow-y: auto; margin-top: 8px; text-align: left; font-size: 13px; line-height: 1.35; }
+  .learnList div { padding: 5px 0; border-top: 1px solid rgba(255,255,255,0.12); }
+  .learnList b { color: #ffd84d; }
+
   /* ---------- Écran d'Accueil Studio Moli / Jardin des Mots ---------- */
   #home {
     position: fixed; inset: 0; z-index: 9; display: flex; align-items: center; justify-content: center;
@@ -528,6 +542,7 @@
 </div>
 
 <div id="hintBanner">Touchez une case de la grille à révéler</div>
+<div id="defCard" role="status" aria-live="polite"></div>
 
 <div id="sideToolsLeft">
   <button id="btnShuffle" class="roundTool" aria-label="Mélanger les lettres">
@@ -700,7 +715,7 @@
   /* =====================================================================
    * Constantes & Configuration
    * ===================================================================== */
-  const GAME_VERSION = '1.3';
+  const GAME_VERSION = '1.4';
   const NET_URL = 'https://enqgjsvqygqxeikfxwxe.supabase.co';
   const NET_ANON_KEY = 'sb_publishable_0EJZem-TiB4ltXxpQbeZRQ_JAaOjGb9';
 
@@ -989,6 +1004,650 @@
     ).split(/\s+/)
   };
 
+  /* =====================================================================
+   * Mini-définitions des mots de révision (thèmes hors « Tous sujets »)
+   * Format : MOT|définition — le mot sert aussi à construire les grilles du thème.
+   * ===================================================================== */
+  const THEME_DEFS_RAW = {
+    sysadmin: `
+LAN|Local Area Network : réseau local (maison, entreprise).
+WAN|Wide Area Network : réseau étendu qui relie des sites distants.
+VLAN|Virtual LAN : réseau local virtuel, isolé des autres sur le même switch.
+VPN|Virtual Private Network : tunnel chiffré vers un réseau distant.
+NAT|Network Address Translation : traduit les IP privées en une IP publique.
+DNS|Domain Name System : traduit un nom (exemple.fr) en adresse IP.
+DHCP|Dynamic Host Configuration Protocol : attribue automatiquement les adresses IP.
+TCP|Transmission Control Protocol : transport fiable, avec accusés de réception.
+UDP|User Datagram Protocol : transport rapide, sans garantie de livraison.
+ARP|Address Resolution Protocol : trouve l'adresse MAC qui correspond à une IP.
+ICMP|Internet Control Message Protocol : messages de contrôle réseau (ping, erreurs).
+MAC|Media Access Control : adresse physique unique d'une carte réseau.
+SNMP|Simple Network Management Protocol : supervision des équipements réseau.
+SMTP|Simple Mail Transfer Protocol : envoi des e-mails (port 25/587).
+IMAP|Internet Message Access Protocol : lecture des e-mails restés sur le serveur.
+POP|Post Office Protocol : rapatrie les e-mails sur le poste local.
+FTP|File Transfer Protocol : transfert de fichiers, non chiffré (port 21).
+SFTP|SSH File Transfer Protocol : transfert de fichiers chiffré via SSH.
+TFTP|Trivial FTP : transfert simple sans authentification, utilisé pour le boot PXE.
+SSH|Secure Shell : connexion à distance chiffrée en ligne de commande (port 22).
+NTP|Network Time Protocol : synchronise l'heure des machines.
+HTTP|HyperText Transfer Protocol : protocole du web (port 80).
+HTTPS|HTTP sécurisé par TLS (port 443).
+TLS|Transport Layer Security : chiffre les échanges (HTTPS, mails…).
+SSL|Secure Sockets Layer : ancêtre de TLS, aujourd'hui obsolète.
+RDP|Remote Desktop Protocol : bureau à distance Windows (port 3389).
+VNC|Virtual Network Computing : prise en main graphique à distance.
+RAID|Redundant Array of Independent Disks : regroupe des disques pour la sécurité ou la vitesse.
+LVM|Logical Volume Manager : gestion souple des volumes disque sous Linux.
+NAS|Network Attached Storage : stockage de fichiers partagé sur le réseau.
+SAN|Storage Area Network : réseau dédié au stockage en mode bloc.
+NFS|Network File System : partage de fichiers Unix/Linux en réseau.
+SMB|Server Message Block : partage de fichiers et d'imprimantes Windows.
+CPU|Central Processing Unit : le processeur.
+RAM|Random Access Memory : mémoire vive, effacée à l'extinction.
+SSD|Solid State Drive : stockage à mémoire flash, sans pièce mobile.
+HDD|Hard Disk Drive : disque dur à plateaux magnétiques.
+BIOS|Basic Input Output System : micrologiciel qui démarre le PC.
+UEFI|Unified Extensible Firmware Interface : successeur moderne du BIOS.
+GPT|GUID Partition Table : table de partitions moderne, remplace le MBR.
+MBR|Master Boot Record : ancien secteur de démarrage et table de partitions.
+ACL|Access Control List : liste des droits d'accès sur une ressource.
+GPO|Group Policy Object : stratégie de groupe appliquée par Active Directory.
+KVM|Kernel-based Virtual Machine : hyperviseur intégré au noyau Linux.
+ISO|Image disque d'un CD/DVD d'installation (fichier .iso).
+PXE|Preboot Execution Environment : démarrage d'un poste par le réseau.
+TTL|Time To Live : durée de vie d'un paquet ou d'un enregistrement DNS.
+MTU|Maximum Transmission Unit : taille max d'une trame (1500 octets en Ethernet).
+QOS|Quality of Service : priorisation de certains flux réseau (voix, vidéo).
+BGP|Border Gateway Protocol : routage entre opérateurs sur Internet.
+OSPF|Open Shortest Path First : protocole de routage interne à état de liens.
+STP|Spanning Tree Protocol : évite les boucles entre switchs.
+DMZ|Zone démilitarisée : réseau tampon pour les serveurs exposés à Internet.
+CLI|Command Line Interface : interface en ligne de commande.
+GUI|Graphical User Interface : interface graphique.
+SLA|Service Level Agreement : engagement de niveau de service (ex. 99,9 % de dispo).
+POE|Power over Ethernet : alimentation électrique par le câble réseau.
+SSID|Nom d'un réseau Wi-Fi.
+WIFI|Réseau local sans fil (normes IEEE 802.11).
+HUB|Concentrateur : répète le signal sur tous ses ports (ancêtre du switch).
+IPAM|IP Address Management : gestion du plan d'adressage IP.
+LDAP|Lightweight Directory Access Protocol : accès à un annuaire (comptes, groupes).
+PING|Commande qui teste si une machine répond (ICMP echo).
+GREP|Commande qui cherche un motif dans du texte.
+CHMOD|Commande Linux qui change les droits d'un fichier.
+CHOWN|Commande Linux qui change le propriétaire d'un fichier.
+SUDO|Exécute une commande avec les droits d'administrateur.
+ROOT|Super-utilisateur Linux, qui a tous les droits.
+CRON|Planificateur de tâches Unix (fichier crontab).
+BASH|Bourne Again SHell : shell par défaut de nombreux Linux.
+SHELL|Interpréteur de commandes (bash, zsh, PowerShell).
+DAEMON|Programme qui tourne en arrière-plan (service Unix).
+SYSTEMD|Gestionnaire de services et du démarrage sous Linux.
+SYSLOG|Protocole standard d'envoi des journaux système.
+UPTIME|Durée écoulée depuis le dernier redémarrage.
+NOYAU|Kernel : cœur du système d'exploitation.
+LINUX|Noyau libre à la base de Debian, Ubuntu, Red Hat…
+DEBIAN|Distribution Linux communautaire réputée pour sa stabilité.
+UBUNTU|Distribution Linux grand public basée sur Debian.
+ROUTEUR|Équipement qui relie des réseaux et choisit le chemin des paquets.
+SWITCH|Commutateur : relie les machines d'un même réseau local.
+SERVEUR|Machine qui fournit un service (web, fichiers, mail…) à des clients.
+CLIENT|Machine ou logiciel qui demande un service à un serveur.
+PROXY|Intermédiaire qui relaie les requêtes (filtrage, cache).
+CACHE|Copie temporaire de données pour y accéder plus vite.
+PAQUET|Unité de données transmise sur un réseau IP.
+TRAME|Unité de données au niveau liaison (Ethernet).
+PORT|Numéro qui identifie un service sur une machine (22 = SSH, 443 = HTTPS).
+HOTE|Host : toute machine connectée au réseau.
+DOMAINE|Ensemble de machines et de comptes gérés par un même annuaire (AD).
+FIREWALL|Pare-feu : filtre le trafic réseau selon des règles.
+GATEWAY|Passerelle : routeur de sortie d'un réseau local.
+NETMASK|Masque de sous-réseau (ex. 255.255.255.0 = /24).
+SUBNET|Sous-réseau : découpage d'une plage d'adresses IP.
+BACKUP|Sauvegarde : copie des données pour pouvoir les restaurer.
+SNAPSHOT|Instantané : état figé d'un disque ou d'une VM à un instant donné.
+QUOTA|Limite d'espace disque ou de ressources par utilisateur.
+VOLUME|Espace de stockage formaté et monté.
+PILOTE|Driver : logiciel qui fait fonctionner un matériel.
+SCRIPT|Fichier de commandes qui automatise des tâches.
+LOG|Journal : fichier qui trace les événements du système.
+SONDE|Capteur de supervision (disque, CPU, service…).
+CLUSTER|Groupe de serveurs qui travaillent ensemble (haute disponibilité).
+LATENCE|Délai de transmission d'un paquet (en millisecondes).
+FIBRE|Fibre optique : transmet les données par la lumière.
+CABLE|Câble réseau cuivre (catégorie 5e, 6…) terminé par une prise RJ45.
+BAIE|Armoire qui accueille serveurs et équipements réseau.
+RACK|Baie normalisée 19 pouces ; aussi l'unité de hauteur « U ».
+ONDULEUR|Alimentation de secours qui protège des coupures de courant.
+ZFS|Système de fichiers avec snapshots, RAID intégré et contrôle d'intégrité.
+SAMBA|Implémentation libre du partage de fichiers Windows (SMB) sous Linux.
+ISCSI|Protocole qui transporte du stockage bloc sur un réseau IP.
+ANSIBLE|Outil d'automatisation de configuration, sans agent, via SSH.
+NAGIOS|Outil historique de supervision.
+ZABBIX|Logiciel libre de supervision réseau et serveurs.
+GRAFANA|Outil de tableaux de bord pour visualiser des métriques.
+PROXMOX|Plateforme de virtualisation libre (KVM + conteneurs LXC).
+VMWARE|Éditeur de virtualisation (ESXi, vSphere).
+HYPERV|Hyper-V : hyperviseur de Microsoft.
+`,
+    it: `
+API|Application Programming Interface : interface qui permet à des logiciels de communiquer.
+SQL|Structured Query Language : langage des bases de données relationnelles.
+JSON|JavaScript Object Notation : format texte d'échange de données.
+XML|eXtensible Markup Language : langage de balisage structuré.
+YAML|Format de configuration lisible, basé sur l'indentation.
+HTML|HyperText Markup Language : structure des pages web.
+CSS|Cascading Style Sheets : mise en forme des pages web.
+DOM|Document Object Model : la page web vue comme un arbre d'objets.
+URL|Uniform Resource Locator : adresse d'une ressource sur le web.
+REST|Style d'API web basé sur HTTP et des ressources (GET, POST…).
+CRUD|Create, Read, Update, Delete : les 4 opérations de base sur des données.
+ORM|Object-Relational Mapping : manipule une base SQL comme des objets.
+IDE|Integrated Development Environment : éditeur complet pour programmer.
+SDK|Software Development Kit : kit d'outils pour développer sur une plateforme.
+JWT|JSON Web Token : jeton signé pour l'authentification.
+OAUTH|Protocole de délégation d'accès (« Se connecter avec… »).
+UUID|Identifiant unique universel sur 128 bits.
+REGEX|Expression régulière : motif de recherche dans du texte.
+GIT|Logiciel de gestion de versions décentralisé.
+GITHUB|Plateforme d'hébergement de dépôts Git.
+COMMIT|Enregistrement d'un lot de modifications dans Git.
+BRANCHE|Ligne de développement parallèle dans Git.
+MERGE|Fusion de deux branches.
+CLONE|Copie locale complète d'un dépôt Git.
+DEPOT|Repository : dossier versionné qui contient le code et son historique.
+PATCH|Correctif appliqué à un logiciel.
+RELEASE|Version publiée d'un logiciel.
+BUILD|Construction de l'application à partir des sources.
+BUG|Défaut dans un programme.
+DEBUG|Rechercher et corriger les bugs.
+TEST|Code qui vérifie automatiquement le comportement d'un programme.
+MOCK|Faux objet qui simule une dépendance pendant un test.
+LINT|Analyse du code pour repérer erreurs et mauvais style.
+CODE|Instructions écrites dans un langage de programmation.
+ALGO|Algorithme : suite d'étapes pour résoudre un problème.
+BOUCLE|Bloc d'instructions répété (for, while).
+CLASSE|Modèle qui définit les attributs et méthodes des objets.
+OBJET|Instance d'une classe, avec son état et son comportement.
+METHODE|Fonction attachée à une classe ou à un objet.
+FONCTION|Bloc de code nommé et réutilisable.
+VARIABLE|Nom qui stocke une valeur modifiable.
+TABLEAU|Array : liste ordonnée d'éléments accessibles par indice.
+POINTEUR|Variable qui contient l'adresse mémoire d'une autre donnée.
+THREAD|Fil d'exécution qui tourne en parallèle dans un programme.
+ASYNC|Exécution asynchrone : on continue sans attendre le résultat.
+PROMISE|Objet JavaScript qui représente un résultat futur.
+CALLBACK|Fonction passée en paramètre et appelée plus tard.
+LAMBDA|Fonction anonyme ; ou fonction serverless (AWS Lambda).
+REQUETE|Demande envoyée à une base de données ou à un serveur.
+SCHEMA|Structure d'une base de données (tables, colonnes, liens).
+INDEX|Structure qui accélère les recherches dans une base.
+CACHE|Copie temporaire de données pour y accéder plus vite.
+COMPILER|Traduire le code source en code machine exécutable.
+PARSER|Analyseur qui lit et décompose un texte (code, JSON…).
+SYNTAXE|Règles d'écriture d'un langage.
+MODULE|Fichier ou paquet de code réutilisable et importable.
+PAQUET|Package : bibliothèque installable (npm, pip…).
+PIPELINE|Chaîne d'étapes automatisées (build, tests, déploiement).
+DEPLOYER|Mettre une application en production.
+CICD|Intégration et déploiement continus : tests et livraisons automatisés.
+DEVOPS|Culture qui rapproche développement et exploitation.
+DOCKER|Outil de conteneurs : empaquette une appli avec ses dépendances.
+IMAGE|Modèle figé à partir duquel on lance des conteneurs.
+POD|Plus petite unité déployable dans Kubernetes.
+CLOUD|Ressources informatiques louées à la demande via Internet.
+SAAS|Software as a Service : logiciel utilisé en ligne par abonnement.
+PAAS|Platform as a Service : plateforme prête pour déployer son code.
+IAAS|Infrastructure as a Service : serveurs virtuels loués à la demande.
+AGILE|Méthode de projet par petites itérations.
+SCRUM|Cadre agile avec sprints, daily et rétrospectives.
+SPRINT|Itération courte (1 à 4 semaines) en méthode agile.
+PYTHON|Langage simple et polyvalent (scripts, data, IA).
+JAVA|Langage objet qui tourne sur la machine virtuelle JVM.
+KOTLIN|Langage moderne pour Android et la JVM.
+SWIFT|Langage d'Apple pour iOS et macOS.
+GOLANG|Go : langage compilé de Google, pensé pour la concurrence.
+RUST|Langage système sûr pour la mémoire, sans ramasse-miettes.
+REACT|Bibliothèque JavaScript de Meta pour construire des interfaces.
+ANGULAR|Framework web de Google en TypeScript.
+SVELTE|Framework web compilé, sans DOM virtuel.
+NODEJS|Exécute du JavaScript côté serveur.
+REDIS|Base clé-valeur en mémoire, très rapide (cache, files).
+KAFKA|Plateforme distribuée de flux d'événements.
+NOSQL|Bases non relationnelles (documents, clé-valeur, graphes).
+MONGODB|Base NoSQL orientée documents JSON.
+GRAPHQL|Langage de requête d'API où le client choisit les champs.
+WEBHOOK|Appel HTTP automatique déclenché par un événement.
+FRONT|Front-end : partie visible d'une application (interface).
+BACK|Back-end : partie serveur d'une application.
+WEB|World Wide Web : pages reliées par des liens sur Internet.
+BIT|Plus petite unité d'information : 0 ou 1.
+OCTET|Groupe de 8 bits.
+HEXA|Base 16 (0-9 puis A-F), très utilisée en informatique.
+BINAIRE|Base 2 : uniquement des 0 et des 1.
+HASH|Empreinte calculée d'une donnée (table de hachage, intégrité).
+PILE|Stack : structure LIFO, dernier entré premier sorti.
+FILE|Queue : structure FIFO, premier entré premier sorti.
+TRI|Rangement des données dans un ordre (tri rapide, tri fusion…).
+GRAPHE|Ensemble de nœuds reliés par des arêtes.
+ARBRE|Structure hiérarchique de nœuds (racine, branches, feuilles).
+NOEUD|Élément d'un arbre, d'un graphe ou d'un cluster.
+CPU|Central Processing Unit : le processeur.
+GPU|Graphics Processing Unit : processeur graphique, aussi utilisé pour l'IA.
+RAM|Random Access Memory : mémoire vive.
+ROM|Read-Only Memory : mémoire morte, non modifiable.
+USB|Universal Serial Bus : connecteur universel des périphériques.
+JVM|Java Virtual Machine : machine virtuelle qui exécute le bytecode Java.
+NPM|Gestionnaire de paquets de Node.js.
+PIP|Gestionnaire de paquets de Python.
+CDN|Content Delivery Network : réseau de serveurs qui rapproche les fichiers des utilisateurs.
+LLM|Large Language Model : grand modèle de langage (IA générative).
+CMS|Content Management System : outil de gestion de site (WordPress…).
+CRM|Customer Relationship Management : gestion de la relation client.
+ERP|Enterprise Resource Planning : progiciel de gestion intégré.
+ETL|Extract, Transform, Load : chaîne d'alimentation d'un entrepôt de données.
+SPA|Single Page Application : appli web qui ne recharge pas la page.
+PWA|Progressive Web App : site installable qui fonctionne hors ligne.
+NULL|Valeur spéciale qui signifie « aucune valeur ».
+VOID|Type « rien » : une fonction qui ne renvoie aucune valeur.
+ENUM|Type énuméré : liste fermée de valeurs possibles.
+TUPLE|Suite ordonnée et non modifiable de valeurs.
+LISTE|Collection ordonnée d'éléments.
+ENTIER|Type numérique sans virgule (int).
+CHAINE|Chaîne de caractères : du texte (string).
+BOOLEEN|Type qui vaut vrai ou faux.
+OCTAL|Base 8, utilisée notamment pour les droits Unix (chmod 755).
+OPCODE|Code d'une instruction machine.
+SOCKET|Point de connexion réseau entre deux programmes.
+TOKEN|Jeton : unité de texte (IA) ou preuve d'authentification.
+SESSION|Échange suivi entre un client et un serveur après connexion.
+COOKIE|Petit fichier stocké par le navigateur pour un site.
+`,
+    medical: `
+ECG|Électrocardiogramme : enregistrement de l'activité électrique du cœur.
+EEG|Électroencéphalogramme : enregistrement de l'activité électrique du cerveau.
+IRM|Imagerie par résonance magnétique.
+AVC|Accident vasculaire cérébral : arrêt brutal de la circulation dans une zone du cerveau.
+IDM|Infarctus du myocarde : mort d'une partie du muscle cardiaque.
+HTA|Hypertension artérielle.
+BPCO|Bronchopneumopathie chronique obstructive (souvent liée au tabac).
+SAMU|Service d'aide médicale urgente (le 15).
+SMUR|Service mobile d'urgence et de réanimation.
+IDE|Infirmier diplômé d'État.
+NFS|Numération formule sanguine : analyse des cellules du sang.
+CRP|Protéine C réactive : marqueur biologique d'inflammation.
+VIH|Virus de l'immunodéficience humaine.
+ADN|Acide désoxyribonucléique : support de l'information génétique.
+ARN|Acide ribonucléique : copie de travail des gènes.
+IMC|Indice de masse corporelle : poids divisé par la taille au carré.
+PCR|Technique qui amplifie l'ADN pour détecter un virus ou un gène.
+EVA|Échelle visuelle analogique : mesure la douleur de 0 à 10.
+APGAR|Score de vitalité du nouveau-né à la naissance (0 à 10).
+GLASGOW|Score de conscience de 3 (coma profond) à 15 (normal).
+SCANNER|Imagerie en coupes par rayons X (tomodensitométrie).
+DIABETE|Excès chronique de sucre dans le sang.
+INSULINE|Hormone du pancréas qui fait baisser la glycémie.
+GLYCEMIE|Taux de sucre dans le sang.
+ARTERE|Vaisseau qui transporte le sang du cœur vers les organes.
+VEINE|Vaisseau qui ramène le sang vers le cœur.
+AORTE|Plus grosse artère du corps, qui part du ventricule gauche.
+COEUR|Muscle creux qui pompe le sang dans tout le corps.
+POUMON|Organe de la respiration : échanges d'oxygène et de CO2.
+FOIE|Organe qui filtre le sang, stocke et fabrique de nombreuses substances.
+REIN|Organe qui filtre le sang et fabrique l'urine.
+RATE|Organe qui filtre le sang et participe à l'immunité.
+PANCREAS|Glande qui produit l'insuline et des sucs digestifs.
+ESTOMAC|Poche digestive entre l'œsophage et l'intestin.
+VESSIE|Réservoir de l'urine.
+TRACHEE|Conduit d'air entre le larynx et les bronches.
+LARYNX|Organe de la voix, en haut de la trachée.
+PHARYNX|Gorge : carrefour des voies digestives et respiratoires.
+BRONCHE|Conduit qui amène l'air dans les poumons.
+CORTEX|Couche externe d'un organe (cerveau, rein, surrénale).
+NEURONE|Cellule nerveuse qui transmet l'influx nerveux.
+NERF|Faisceau de fibres nerveuses.
+MUSCLE|Tissu qui se contracte pour produire un mouvement.
+TENDON|Attache un muscle à un os.
+FEMUR|Os de la cuisse, le plus long du corps.
+HUMERUS|Os du bras, entre l'épaule et le coude.
+TIBIA|Os principal de la jambe.
+ROTULE|Petit os plat à l'avant du genou.
+THORAX|Cage thoracique, qui contient le cœur et les poumons.
+CRANE|Boîte osseuse qui protège le cerveau.
+SANG|Liquide qui transporte oxygène, nutriments et défenses.
+PLASMA|Partie liquide du sang.
+SERUM|Plasma sans facteurs de coagulation ; ou soluté injectable.
+GLOBULE|Cellule du sang (rouge : oxygène ; blanc : défense).
+HORMONE|Messager chimique sécrété par une glande.
+ENZYME|Protéine qui accélère une réaction chimique.
+CELLULE|Unité de base du vivant.
+TISSU|Ensemble de cellules de même fonction.
+POULS|Battements perçus sur une artère, reflet du rythme cardiaque.
+TENSION|Pression du sang dans les artères (ex. 12/8).
+FIEVRE|Température corporelle au-dessus de 38 °C.
+OEDEME|Gonflement dû à une accumulation de liquide.
+ANEMIE|Manque d'hémoglobine dans le sang.
+EMBOLIE|Obstruction d'un vaisseau par un caillot migrateur.
+ISCHEMIE|Manque d'apport de sang dans un tissu.
+NECROSE|Mort des cellules d'un tissu.
+FIBROSE|Remplacement d'un tissu par du tissu cicatriciel.
+TUMEUR|Masse de cellules qui prolifèrent anormalement.
+KYSTE|Cavité anormale remplie de liquide.
+ABCES|Collection de pus.
+ULCERE|Plaie qui ne cicatrise pas (peau, estomac).
+FRACTURE|Rupture d'un os.
+ENTORSE|Lésion d'un ligament d'une articulation.
+LUXATION|Déboîtement d'une articulation.
+SUTURE|Points qui referment une plaie.
+BIOPSIE|Prélèvement d'un fragment de tissu pour analyse.
+VACCIN|Prépare le système immunitaire contre une maladie.
+VIRUS|Agent infectieux qui se multiplie dans les cellules.
+BACTERIE|Micro-organisme d'une seule cellule, parfois pathogène.
+ANTIGENE|Substance reconnue par le système immunitaire.
+SYMPTOME|Signe ressenti ou observé d'une maladie.
+SYNDROME|Ensemble de symptômes caractéristiques.
+THERAPIE|Traitement d'une maladie.
+DOSE|Quantité de médicament à administrer.
+PONCTION|Prélèvement de liquide à l'aiguille.
+INTUBER|Placer un tube dans la trachée pour ventiler le patient.
+SONDE|Tube introduit dans le corps (urinaire, gastrique…).
+URGENCE|Situation qui demande une prise en charge immédiate.
+TRIAGE|Tri des patients selon leur gravité aux urgences.
+ASEPSIE|Ensemble des mesures qui empêchent l'apport de microbes.
+STERILE|Exempt de tout micro-organisme.
+CATHETER|Tube fin introduit dans un vaisseau ou une cavité.
+SERINGUE|Instrument pour injecter ou prélever un liquide.
+GARROT|Lien serré pour arrêter un saignement ou faire ressortir une veine.
+APNEE|Arrêt de la respiration.
+DYSPNEE|Difficulté à respirer.
+SYNCOPE|Perte de connaissance brève.
+CYANOSE|Coloration bleutée de la peau par manque d'oxygène.
+ICTERE|Jaunisse : coloration jaune de la peau (bilirubine).
+SEPSIS|Infection grave qui dérègle tout l'organisme.
+ALLERGIE|Réaction excessive du système immunitaire à une substance.
+ASTHME|Rétrécissement des bronches qui gêne la respiration.
+OTITE|Inflammation de l'oreille.
+ANGINE|Inflammation de la gorge (amygdales).
+DIALYSE|Épuration artificielle du sang quand les reins ne fonctionnent plus.
+ORL|Oto-rhino-laryngologie : spécialité oreilles, nez, gorge.
+IRIS|Partie colorée de l'œil, qui règle la taille de la pupille.
+CORNEE|Membrane transparente à l'avant de l'œil.
+RETINE|Membrane au fond de l'œil qui capte la lumière.
+GENOU|Articulation entre le fémur et le tibia.
+COUDE|Articulation entre le bras et l'avant-bras.
+HANCHE|Articulation entre le bassin et le fémur.
+EPAULE|Articulation qui relie le bras au tronc.
+COLON|Gros intestin, qui absorbe l'eau.
+UTERUS|Organe où se développe l'embryon.
+OVAIRE|Glande qui produit les ovules et des hormones.
+PEAU|Plus grand organe du corps, barrière protectrice.
+DERME|Couche de la peau sous l'épiderme.
+LYMPHE|Liquide clair qui circule dans les vaisseaux lymphatiques.
+UREE|Déchet azoté éliminé par les reins.
+PUS|Liquide formé de globules blancs et de débris lors d'une infection.
+PLAIE|Lésion de la peau ou d'un tissu.
+ESCARRE|Plaie due à une pression prolongée (patient alité).
+HEMATOME|Collection de sang sous la peau (bleu).
+ACNE|Inflammation des glandes sébacées de la peau.
+GALE|Maladie de peau contagieuse due à un acarien.
+ZONA|Éruption douloureuse due à la réactivation du virus de la varicelle.
+LUPUS|Maladie auto-immune qui peut toucher la peau et les organes.
+GOUTTE|Inflammation d'une articulation par des cristaux d'acide urique.
+GRIPPE|Infection virale respiratoire saisonnière.
+RAGE|Maladie virale mortelle transmise par morsure.
+TETANOS|Infection bactérienne qui provoque des contractures (vaccin obligatoire).
+MIGRAINE|Mal de tête intense, souvent d'un seul côté.
+CORTISOL|Hormone du stress, produite par les surrénales.
+SEIN|Glande mammaire.
+CIL|Poil du bord de la paupière.
+NEZ|Organe de l'odorat et entrée des voies respiratoires.
+AINE|Pli entre la cuisse et le ventre.
+RACHIS|Colonne vertébrale.
+STENT|Petit ressort posé dans une artère pour la maintenir ouverte.
+`,
+    cyber: `
+NDA|Non-Disclosure Agreement : accord de confidentialité.
+VPN|Virtual Private Network : tunnel chiffré vers un réseau distant.
+TLS|Transport Layer Security : chiffre les échanges (HTTPS, mails…).
+SSL|Secure Sockets Layer : ancêtre de TLS, aujourd'hui obsolète.
+AES|Advanced Encryption Standard : chiffrement symétrique de référence.
+RSA|Algorithme de chiffrement asymétrique (clé publique / clé privée).
+SHA|Secure Hash Algorithm : famille de fonctions de hachage (SHA-256…).
+MFA|Multi-Factor Authentication : authentification à plusieurs facteurs.
+OTP|One-Time Password : code à usage unique (SMS, application).
+SSO|Single Sign-On : une seule connexion pour plusieurs applications.
+IAM|Identity and Access Management : gestion des identités et des accès.
+PAM|Privileged Access Management : contrôle des comptes à privilèges.
+RBAC|Role-Based Access Control : droits attribués selon le rôle.
+PKI|Public Key Infrastructure : infrastructure de gestion des certificats.
+HSM|Hardware Security Module : boîtier matériel qui protège les clés.
+SOC|Security Operations Center : équipe qui surveille la sécurité 24 h/24.
+SIEM|Security Information and Event Management : centralise et corrèle les journaux.
+SOAR|Security Orchestration, Automation and Response : automatise la réponse aux incidents.
+EDR|Endpoint Detection and Response : détection et réponse sur les postes.
+XDR|Extended Detection and Response : EDR étendu au réseau, au cloud, aux mails.
+IDS|Intrusion Detection System : détecte les intrusions.
+IPS|Intrusion Prevention System : détecte et bloque les intrusions.
+WAF|Web Application Firewall : pare-feu dédié aux applications web.
+DLP|Data Loss Prevention : empêche la fuite de données sensibles.
+DOS|Denial of Service : attaque qui rend un service indisponible.
+DDOS|Distributed DoS : déni de service lancé depuis de nombreuses machines.
+XSS|Cross-Site Scripting : injection de script dans une page web.
+CSRF|Cross-Site Request Forgery : fait exécuter une action à l'insu de l'utilisateur.
+SSRF|Server-Side Request Forgery : force un serveur à faire des requêtes internes.
+SQLI|Injection SQL : détourne une requête vers la base de données.
+RCE|Remote Code Execution : exécution de code à distance.
+LFI|Local File Inclusion : lecture de fichiers locaux du serveur via une faille.
+MITM|Man-In-The-Middle : attaquant qui s'intercale dans une communication.
+CVE|Common Vulnerabilities and Exposures : identifiant public d'une faille.
+CVSS|Score de gravité d'une vulnérabilité, de 0 à 10.
+APT|Advanced Persistent Threat : groupe d'attaquants organisé et persistant.
+IOC|Indicator Of Compromise : trace qui révèle une compromission.
+TTP|Tactiques, techniques et procédures d'un attaquant.
+OSINT|Open Source Intelligence : renseignement à partir de sources publiques.
+CTF|Capture The Flag : compétition de sécurité informatique.
+OWASP|Fondation qui publie le Top 10 des risques des applications web.
+ANSSI|Agence nationale de la sécurité des systèmes d'information.
+RGPD|Règlement général sur la protection des données personnelles (UE).
+DPO|Data Protection Officer : délégué à la protection des données.
+RSSI|Responsable de la sécurité des systèmes d'information.
+PSSI|Politique de sécurité des systèmes d'information.
+PCA|Plan de continuité d'activité.
+PRA|Plan de reprise d'activité après un sinistre.
+DMZ|Zone démilitarisée : réseau tampon pour les serveurs exposés.
+WPA|Wi-Fi Protected Access : sécurisation du Wi-Fi (WPA2, WPA3).
+WEP|Ancien chiffrement Wi-Fi, cassé depuis longtemps.
+KERBEROS|Protocole d'authentification par tickets (Active Directory).
+RADIUS|Protocole d'authentification centralisée (Wi-Fi, VPN).
+PHISHING|Hameçonnage : faux message pour voler des identifiants.
+SPAM|Courriel indésirable envoyé en masse.
+MALWARE|Logiciel malveillant.
+VIRUS|Programme malveillant qui se propage en infectant des fichiers.
+VER|Worm : malware qui se propage seul sur le réseau.
+TROJAN|Cheval de Troie : malware caché dans un programme d'apparence légitime.
+ROOTKIT|Malware qui se cache au cœur du système pour garder l'accès.
+BOTNET|Réseau de machines infectées pilotées à distance.
+RANCON|Somme exigée par un rançongiciel pour rendre les données.
+SPYWARE|Logiciel espion.
+ADWARE|Logiciel publicitaire intrusif.
+BACKDOOR|Porte dérobée : accès caché qui contourne l'authentification.
+EXPLOIT|Code qui tire parti d'une vulnérabilité.
+PAYLOAD|Charge utile : partie active d'une attaque.
+ZERODAY|Faille inconnue de l'éditeur, donc sans correctif.
+PATCH|Correctif de sécurité.
+SANDBOX|Bac à sable : environnement isolé pour analyser un fichier suspect.
+HONEYPOT|Pot de miel : leurre qui attire et observe les attaquants.
+FIREWALL|Pare-feu : filtre le trafic réseau selon des règles.
+BASTION|Serveur d'accès sécurisé et tracé vers les machines d'administration.
+PROXY|Intermédiaire qui relaie et filtre les requêtes.
+PENTEST|Test d'intrusion : attaque autorisée pour trouver les failles.
+REDTEAM|Équipe qui simule de vraies attaques.
+BLUETEAM|Équipe qui défend et détecte les attaques.
+FORENSIC|Investigation numérique après un incident.
+INCIDENT|Événement de sécurité qui porte atteinte au système d'information.
+AUDIT|Contrôle de la sécurité par rapport à un référentiel.
+HASH|Empreinte d'une donnée par une fonction à sens unique.
+SEL|Salt : valeur aléatoire ajoutée au mot de passe avant hachage.
+CHIFFRER|Rendre une donnée illisible sans la clé.
+CLE|Secret qui permet de chiffrer ou de déchiffrer.
+JETON|Token : preuve d'authentification temporaire.
+FUZZING|Envoi massif de données aléatoires pour faire planter un programme.
+SPOOFING|Usurpation d'identité (adresse IP, mail, DNS…).
+SNIFFER|Outil qui capture le trafic réseau.
+FAILLE|Vulnérabilité exploitable.
+MENACE|Source potentielle d'attaque.
+RISQUE|Menace × vulnérabilité × impact.
+PIRATE|Personne qui s'introduit illégalement dans un système.
+HACKER|Expert en sécurité ; pas forcément malveillant.
+CRYPTO|Cryptographie : science du chiffrement.
+LOG|Journal d'événements, base de toute investigation.
+`,
+    science: `
+ATOME|Plus petite partie d'un élément chimique.
+ION|Atome ou molécule qui a gagné ou perdu des électrons.
+PROTON|Particule de charge positive du noyau atomique.
+NEUTRON|Particule sans charge du noyau atomique.
+ELECTRON|Particule de charge négative qui tourne autour du noyau.
+PHOTON|Particule de lumière, sans masse.
+QUARK|Particule élémentaire qui compose protons et neutrons.
+BOSON|Particule porteuse d'une force (photon, boson de Higgs…).
+ISOTOPE|Atome d'un même élément avec un nombre de neutrons différent.
+MOLECULE|Assemblage d'atomes liés entre eux.
+ADN|Acide désoxyribonucléique : support de l'information génétique.
+ARN|Acide ribonucléique : copie de travail des gènes.
+GENE|Portion d'ADN qui code un caractère.
+GENOME|Ensemble du matériel génétique d'un être vivant.
+MITOSE|Division cellulaire qui donne deux cellules identiques.
+MEIOSE|Division qui produit les cellules reproductrices.
+PROTEINE|Molécule faite d'acides aminés (structure, enzymes…).
+ESPECE|Groupe d'êtres vivants qui peuvent se reproduire entre eux.
+FOSSILE|Reste ou trace d'un être vivant conservé dans la roche.
+ORBITE|Trajectoire d'un astre autour d'un autre.
+PLANETE|Astre qui tourne autour d'une étoile.
+ETOILE|Boule de gaz qui produit de l'énergie par fusion nucléaire.
+SOLEIL|Étoile au centre de notre système solaire.
+LUNE|Satellite naturel de la Terre.
+COMETE|Petit corps de glace et de poussière, à la queue lumineuse.
+GALAXIE|Immense ensemble d'étoiles, de gaz et de poussière.
+PULSAR|Étoile à neutrons qui émet des impulsions régulières.
+QUASAR|Noyau de galaxie extrêmement lumineux.
+METEORE|Traînée lumineuse d'un objet qui brûle dans l'atmosphère.
+ECLIPSE|Un astre en cache un autre (Lune devant le Soleil…).
+SOLSTICE|Jour le plus long ou le plus court de l'année.
+EQUINOXE|Jour et nuit de même durée (printemps, automne).
+ZENITH|Point du ciel à la verticale de l'observateur.
+NADIR|Point opposé au zénith, sous l'observateur.
+MERCURE|Planète la plus proche du Soleil ; aussi un métal liquide.
+VENUS|Deuxième planète, la plus chaude du système solaire.
+MARS|Planète rouge, quatrième à partir du Soleil.
+JUPITER|Plus grosse planète du système solaire.
+SATURNE|Planète géante entourée d'anneaux.
+URANUS|Planète géante de glace, couchée sur le côté.
+NEPTUNE|Planète la plus éloignée du Soleil.
+ENERGIE|Capacité à produire un travail (en joules).
+MASSE|Quantité de matière d'un corps (en kilogrammes).
+FORCE|Action qui modifie le mouvement d'un corps (en newtons).
+NEWTON|Unité de force ; physicien de la gravitation universelle.
+JOULE|Unité d'énergie.
+WATT|Unité de puissance : un joule par seconde.
+VOLT|Unité de tension électrique.
+OHM|Unité de résistance électrique.
+AMPERE|Unité d'intensité du courant électrique.
+KELVIN|Unité de température absolue (0 K = -273,15 °C).
+PASCAL|Unité de pression.
+HERTZ|Unité de fréquence : un cycle par seconde.
+GRAVITE|Force d'attraction entre les masses.
+INERTIE|Tendance d'un corps à garder son mouvement.
+VITESSE|Distance parcourue par unité de temps.
+ONDE|Propagation d'une perturbation (son, lumière…).
+SPECTRE|Décomposition d'une lumière ou d'un signal en fréquences.
+PRISME|Bloc transparent qui décompose la lumière.
+LASER|Lumière cohérente et très concentrée.
+FUSION|Union de noyaux légers qui libère de l'énergie (étoiles).
+FISSION|Cassure d'un noyau lourd qui libère de l'énergie (centrales).
+ENTROPIE|Mesure du désordre d'un système.
+PRESSION|Force exercée par unité de surface.
+DENSITE|Masse volumique d'un corps comparée à celle de l'eau.
+TENSION|Différence de potentiel électrique (en volts).
+COURANT|Déplacement de charges électriques (en ampères).
+OPTIQUE|Science de la lumière et de la vision.
+LENTILLE|Verre qui fait converger ou diverger la lumière.
+ACIDE|Substance de pH inférieur à 7.
+BASE|Substance de pH supérieur à 7.
+OXYDE|Composé d'oxygène et d'un autre élément (rouille…).
+CATALYSE|Accélération d'une réaction par un catalyseur.
+REACTION|Transformation chimique de réactifs en produits.
+CARBONE|Élément C, base de la chimie du vivant.
+AZOTE|Élément N, 78 % de l'air.
+OXYGENE|Élément O, indispensable à la respiration.
+HELIUM|Gaz léger et inerte, deuxième élément.
+SODIUM|Élément Na, présent dans le sel de cuisine.
+CALCIUM|Élément Ca, constituant des os.
+FER|Élément Fe, métal le plus utilisé.
+CUIVRE|Élément Cu, excellent conducteur électrique.
+ARGENT|Élément Ag, métal précieux.
+PLATINE|Élément Pt, métal précieux et catalyseur.
+MAGMA|Roche en fusion sous la croûte terrestre.
+LAVE|Magma qui s'écoule à la surface.
+VOLCAN|Relief formé par la sortie du magma.
+SEISME|Tremblement de terre.
+BASALTE|Roche volcanique sombre.
+GRANITE|Roche magmatique claire et dure.
+QUARTZ|Minéral de silice, très répandu.
+CRISTAL|Solide aux atomes rangés de façon régulière.
+GLACIER|Masse de glace qui s'écoule lentement.
+EROSION|Usure du relief par l'eau, le vent ou la glace.
+SEDIMENT|Dépôt de particules qui forme les roches sédimentaires.
+CLIMAT|Conditions météo moyennes d'une région sur des décennies.
+EAU|Molécule H2O : deux atomes d'hydrogène, un d'oxygène.
+AIR|Mélange de gaz de l'atmosphère (78 % azote, 21 % oxygène).
+GAZ|État de la matière sans forme ni volume propres.
+SEL|Composé ionique ; le sel de cuisine est le chlorure de sodium.
+ERE|Grande division des temps géologiques (ère primaire…).
+AXE|Droite autour de laquelle tourne un objet (axe de rotation).
+ARC|Arc électrique : décharge lumineuse entre deux conducteurs.
+SON|Onde mécanique qui se propage dans l'air.
+ECHO|Son réfléchi par un obstacle.
+VIDE|Espace sans matière.
+OZONE|Molécule O3 qui filtre les UV dans la haute atmosphère.
+DUNE|Colline de sable façonnée par le vent.
+DELTA|Embouchure d'un fleuve en plusieurs bras.
+ATOLL|Île corallienne en anneau autour d'un lagon.
+RECIF|Massif de corail ou de roche près de la surface.
+MAREE|Montée et descente de la mer due à la Lune et au Soleil.
+ROCHE|Assemblage naturel de minéraux.
+TERRE|Troisième planète du système solaire.
+NOYAU|Centre de l'atome ; aussi centre de la Terre ou de la cellule.
+ORAGE|Perturbation avec éclairs et tonnerre.
+ECLAIR|Décharge électrique entre nuages ou vers le sol.
+NUAGE|Amas de gouttelettes d'eau ou de cristaux de glace.
+SPORE|Cellule de reproduction des champignons et des fougères.
+POLLEN|Poussière qui porte les cellules mâles des plantes à fleurs.
+SEVE|Liquide qui circule dans les plantes.
+ALGUE|Organisme aquatique qui fait la photosynthèse.
+MICROBE|Être vivant microscopique (bactérie, levure…).
+ACIER|Alliage de fer et de carbone.
+ALLIAGE|Mélange de métaux (bronze, laiton, acier…).
+ZINC|Élément Zn, métal qui protège l'acier de la rouille.
+PLOMB|Élément Pb, métal lourd et toxique.
+NICKEL|Élément Ni, métal utilisé dans les alliages et les batteries.
+ETAIN|Élément Sn, métal des soudures.
+IODE|Élément I, utilisé comme antiseptique.
+CHLORE|Élément Cl, désinfectant de l'eau.
+NEON|Gaz rare des enseignes lumineuses.
+ARGON|Gaz rare, 1 % de l'air.
+RADON|Gaz rare radioactif issu du sol.
+URANIUM|Élément U, combustible des centrales nucléaires.
+COBALT|Élément Co, métal des batteries et des aimants.
+LITHIUM|Élément Li, métal léger des batteries.
+LUX|Unité d'éclairement.
+MOLE|Quantité de matière : 6,02 × 10²³ entités.
+TESLA|Unité de champ magnétique.
+DIODE|Composant qui ne laisse passer le courant que dans un sens.
+AIMANT|Objet qui attire le fer (champ magnétique).
+`
+  };
+
   // Normalisation majuscules A-Z sans accents
   const normWord = w => String(w || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z]/g, '');
 
@@ -996,6 +1655,8 @@
   const ALL_WORDS_SET = new Set();
   const THEME_SET = {};
   const THEME_ROOTS = {};
+  const THEME_DEFS = {};  // thème -> Map(MOT -> définition)
+  const THEME_POOL = {};  // thème -> mots définis qui servent à construire les grilles
 
   for (const w of BASE_FR) {
     const nw = normWord(w);
@@ -1003,6 +1664,17 @@
   }
   for (const k of THEME_ORDER) {
     THEME_SET[k] = new Set();
+    THEME_DEFS[k] = new Map();
+    for (const line of (THEME_DEFS_RAW[k] || '').split('\n')) {
+      const sep = line.indexOf('|');
+      if (sep < 0) continue;
+      const nw = normWord(line.slice(0, sep));
+      if (nw.length < 3 || nw.length > 8) continue;
+      THEME_DEFS[k].set(nw, line.slice(sep + 1).trim());
+      ALL_WORDS_SET.add(nw);
+      THEME_SET[k].add(nw);
+    }
+    THEME_POOL[k] = [...THEME_DEFS[k].keys()];
     for (const w of THEME_WORDS[k]) {
       const nw = normWord(w);
       if (nw.length >= 3 && nw.length <= 8) {
@@ -1063,6 +1735,28 @@
     const tSet = THEME_SET[themeKey] || THEME_SET.general;
     const roots = THEME_ROOTS[themeKey] && THEME_ROOTS[themeKey].length ? THEME_ROOTS[themeKey] : THEME_ROOTS.general;
 
+    // Thèmes de révision : la roue est construite à partir de plusieurs mots du thème
+    // (plusieurs essais : un mot qui ne trouve pas de croisement est écarté, on garde la grille la plus riche)
+    if (themeKey !== 'general') {
+      let best = null;
+      for (let attempt = 0; attempt < 8; attempt++) {
+        const pick = pickThemeWords(rng, themeKey, levelNum);
+        if (!pick) break;
+        // Mots de jonction (courants) seulement en complément, après les mots du thème
+        const fillers = BASE_WORDS.filter(w => canForm(w, pick.counts) && !pick.words.includes(w))
+          .map(w => ({ w, k: (levelNum <= 5 ? w.length : -w.length) + rng() }))
+          .sort((a, b) => a.k - b.k).map(f => f.w);
+        const total = levelNum <= 2 ? 3 : levelNum <= 5 ? 4 : levelNum <= 12 ? 5 : 6;
+        const puzzle = placeCrossword(rng, themeKey, [...pick.words, ...fillers], Math.max(total, pick.words.length), pick.counts);
+        const themed = puzzle.words.filter(w => w.isTheme).length;
+        if (!best || themed > best.themed || (themed === best.themed && puzzle.words.length > best.puzzle.words.length)) {
+          best = { puzzle, themed };
+        }
+        if (themed >= pick.words.length && themed >= 3) break;
+      }
+      if (best) return best.puzzle;
+    }
+
     // Courbe de difficulté : roue de 4 lettres et 3 mots au début, puis 5, 6, 7 lettres, puis 6 à 8
     const rootLen = levelNum <= 2 ? 4 : levelNum <= 5 ? 5 : levelNum <= 12 ? 6 : levelNum <= 25 ? 7 : 0;
     const targetWordCount = levelNum <= 2 ? 3 : levelNum <= 5 ? 4
@@ -1108,6 +1802,71 @@
       r: rng()
     })).sort((a, b) => (b.isRoot - a.isRoot) || (b.isTheme - a.isTheme)
       || (easy ? a.len - b.len : b.len - a.len) || (a.r - b.r));
+    return placeCrossword(rng, themeKey, scored.map(s => s.w), targetWordCount, letterCounts(rootWord));
+  }
+
+  /**
+   * Thèmes de révision : choisit des mots définis du thème qui partagent des lettres,
+   * de sorte que leur réunion tienne dans la roue (4-5 lettres au début, jusqu'à 8 ensuite).
+   * Renvoie { words (le plus long en premier), counts (lettres de la roue) } ou null.
+   */
+  function pickThemeWords(rng, themeKey, levelNum) {
+    const pool = THEME_POOL[themeKey];
+    if (!pool || pool.length < 20) return null;
+    const maxLetters = levelNum <= 2 ? 5 : levelNum <= 5 ? 6 : levelNum <= 12 ? 7 : 8;
+    // Nombre de mots du thème visés (les mots de jonction complètent la grille ensuite)
+    const target = levelNum <= 5 ? 3 : 4;
+    // Plus le niveau monte, plus on privilégie les mots longs
+    const longBias = levelNum <= 5 ? 0 : levelNum <= 12 ? 0.4 : 0.7;
+    let best = null;
+
+    for (let attempt = 0; attempt < 40; attempt++) {
+      const firsts = pool.filter(w => w.length <= maxLetters && w.length >= Math.min(maxLetters - 2, 5));
+      const first = (firsts.length ? firsts : pool)[Math.floor(rng() * (firsts.length || pool.length))];
+      if (first.length > maxLetters) continue;
+      const words = [first];
+      const counts = letterCounts(first);
+      let size = first.length;
+      const order = pool.map(w => ({ w, r: rng() }));
+
+      while (words.length < target) {
+        let pick = null, pickKey = Infinity, pickAdd = 0;
+        for (const { w, r } of order) {
+          if (w.length > maxLetters || words.includes(w)) continue;
+          const wc = letterCounts(w);
+          let add = 0, shared = false;
+          for (const ch in wc) {
+            if (counts[ch]) shared = true;
+            add += Math.max(0, wc[ch] - (counts[ch] || 0));
+          }
+          if (!shared || size + add > maxLetters) continue;
+          // Moins de lettres ajoutées = roue plus compacte ; un peu de hasard pour varier
+          const key = add - w.length * longBias + r * 0.9;
+          if (key < pickKey) { pick = w; pickKey = key; pickAdd = add; }
+        }
+        if (!pick) break;
+        words.push(pick);
+        const pc = letterCounts(pick);
+        for (const ch in pc) counts[ch] = Math.max(counts[ch] || 0, pc[ch]);
+        size += pickAdd;
+      }
+      if (!best || words.length > best.words.length) best = { words, counts };
+      if (words.length >= target) break;
+    }
+    if (!best || best.words.length < 2) return null;
+    best.words.sort((a, b) => b.length - a.length);
+    return best;
+  }
+
+  /**
+   * Place les mots dans une grille de mots croisés : le premier mot horizontalement,
+   * puis chaque suivant en croisant un mot déjà posé. `wheelCounts` = lettres de la roue.
+   */
+  function placeCrossword(rng, themeKey, wordList, targetWordCount, wheelCounts) {
+    const tSet = THEME_SET[themeKey] || THEME_SET.general;
+    const rootWord = wordList[0];
+    const scored = wordList.map(w => ({ w }));
+    const subWords = ALL_WORDS.filter(w => canForm(w, wheelCounts));
     const placed = []; // { word, dir: 'H'|'V', r, c, isTheme }
     const grid = new Map(); // "r,c" -> { ch, hWord, vWord }
     const kOf = (r, c) => `${r},${c}`;
@@ -1216,6 +1975,8 @@
               }
             }
           }
+          // Mot posé : on passe au suivant (sinon on le reposerait en boucle sur `placed` qui s'allonge)
+          if (done) break;
         }
       }
     }
@@ -1256,7 +2017,7 @@
     }
 
     // Mélange initial des lettres de la roue
-    const wheelLetters = rootWord.split('');
+    const wheelLetters = Object.entries(wheelCounts).flatMap(([ch, n]) => Array(n).fill(ch));
     for (let i = wheelLetters.length - 1; i > 0; i--) {
       const j = Math.floor(rng() * (i + 1));
       [wheelLetters[i], wheelLetters[j]] = [wheelLetters[j], wheelLetters[i]];
@@ -1699,6 +2460,7 @@
       for (const w of state.puzzle.words) w.cells[0].revealed = true;
     }
     state.bonusWords = [];
+    clearDefinitions();
     state.selectedIdx = [];
     state.pointerPos = null;
     state.wheelAngles = [];
@@ -1747,6 +2509,45 @@
     }
   }
 
+  /* ---------- Fiches de révision (thèmes hors « Tous sujets ») ---------- */
+  const definitionOf = word => (state.theme !== 'general' && THEME_DEFS[state.theme].get(word)) || '';
+  const defQueue = [];
+  let defTimer = 0;
+
+  function showDefinition(word) {
+    if (!definitionOf(word) || defQueue.includes(word)) return;
+    defQueue.push(word);
+    if (defQueue.length === 1) displayNextDefinition();
+  }
+  function displayNextDefinition() {
+    const card = $('defCard');
+    clearTimeout(defTimer);
+    if (!defQueue.length) { card.classList.remove('show'); return; }
+    const word = defQueue[0];
+    card.innerHTML = `📘 <b>${esc(word)}</b> — ${esc(definitionOf(word))}`;
+    card.classList.add('show');
+    defTimer = setTimeout(dismissDefinition, 5200);
+  }
+  function dismissDefinition() {
+    defQueue.shift();
+    $('defCard').classList.remove('show');
+    clearTimeout(defTimer);
+    defTimer = setTimeout(displayNextDefinition, 260);
+  }
+  function clearDefinitions() {
+    defQueue.length = 0;
+    clearTimeout(defTimer);
+    $('defCard').classList.remove('show');
+  }
+  /** Récapitulatif « À retenir » de la grille, pour la fenêtre de fin de niveau */
+  function learnListHtml() {
+    const items = state.puzzle.words.map(w => w.word).concat(state.bonusWords)
+      .filter((w, i, arr) => arr.indexOf(w) === i && definitionOf(w));
+    if (!items.length) return '';
+    return `<div class="learnList"><b>📚 À retenir</b>` +
+      items.map(w => `<div><b>${esc(w)}</b> — ${esc(definitionOf(w))}</div>`).join('') + '</div>';
+  }
+
   function setCellPickMode(on) {
     state.cellPickMode = on;
     $('btnHintCell').classList.toggle('active', on);
@@ -1771,6 +2572,7 @@
       // Nouveau mot de la grille trouvé !
       gridWord.found = true;
       if (state.mode === 'levels' && state.level >= 2) save.tutoDone = true;
+      showDefinition(word);
       state.lastSubmittedStatus = 'ok';
       state.turns++;
       state.combo++;
@@ -1841,6 +2643,7 @@
       }
       state.bonusWords.push(word);
       save.stats.bonusFound++;
+      showDefinition(word);
       state.turns++;
       state.score += word.length * 15;
       state.lastSubmittedStatus = 'bonus';
@@ -1978,7 +2781,7 @@
         title: 'Puzzle du Jour Réussi !',
         text: `<b>${fmtNum(state.score)} points</b> · combo max ×${state.maxCombo}<br>` +
           `Clés gagnées aujourd'hui : <b>${'🔑'.repeat(stars)}</b> (+${rewardCoins} 🪙)` +
-          worldLineHtml(),
+          worldLineHtml() + learnListHtml(),
         buttons: [
           { label: '📅 Voir le calendrier', primary: true, onClick: () => { hideModal(); homeTab = 'daily'; showHome(); } },
           { label: '🏆 Top 10 du Jour', onClick: () => showBoardTop('daily', bkey, `Puzzle du ${fmtDay(day)}`, openDailyWin) },
@@ -2016,7 +2819,7 @@
       text: `<b style="font-size:22px;color:#ffd84d">${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}</b><br>` +
         `Thème <b>${esc(tName)}</b> · Mot-souche : <b>${state.puzzle.rootWord}</b><br>` +
         `Score : <b>${fmtNum(state.score)} pts</b> · Combo max : <b>×${state.maxCombo}</b> · +${rewardCoins} 🪙` +
-        worldLineHtml(),
+        worldLineHtml() + learnListHtml(),
       buttons: [
         { label: `Niveau ${finishedLvl + 1} →`, primary: true, onClick: () => { hideModal(); startLevel(finishedLvl + 1); } },
         { label: '🏆 Top 10 du niveau', onClick: () => showBoardTop('level', bkey, `Niveau ${finishedLvl} · ${tName}`, openWinModal) },
@@ -2095,6 +2898,7 @@
     for (const w of state.puzzle.words) {
       if (!w.found && w.cells.every(c => c.revealed)) {
         w.found = true;
+        showDefinition(w.word);
         state.turns++;
         state.score += w.word.length * 20;
       }
@@ -4423,6 +5227,7 @@
   $('btnDailyGift').addEventListener('click', () => openDailyGiftModal());
   $('btnBonusWords').addEventListener('click', () => showBonusWordsModal());
   $('btnShuffle').addEventListener('click', () => shuffleWheel());
+  $('defCard').addEventListener('click', () => dismissDefinition());
   $('btnHintOne').addEventListener('click', () => useHintOne());
   $('btnHintCell').addEventListener('click', () => useHintCellToggle());
   $('btnHintMulti').addEventListener('click', () => useHintMulti());
